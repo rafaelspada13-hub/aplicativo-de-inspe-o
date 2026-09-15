@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#16233c">
+<title>New Válvulas — Inspeção de manutenção</title>
+
+<style>
+:root{
+  --navy:#16233c; --steel:#4a5a75; --paper:#f2f3f6; --rule:#d4d8df; --ink:#101318;
+  --ok:#1b7f4b; --okbg:#e4f4ea; --nc:#bd2b21; --ncbg:#fbe7e5; --na:#6b7280; --nabg:#e9ebef;
+  --amber:#a8711a; --amberbg:#fdf3e0;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font:16px/1.4 "Inter","Helvetica Neue",Arial,sans-serif;padding-bottom:150px}
+.bar{position:sticky;top:0;z-index:30;background:var(--navy);color:#fff;display:flex;align-items:center;gap:11px;
+     padding:13px 15px;padding-top:calc(13px + env(safe-area-inset-top,0))}
+.bar h1{font-size:16px;margin:0;font-weight:650;flex:1}
+.bar .sub{display:block;font-size:12px;opacity:.72;font-weight:400;margin-top:2px}
+.back{background:rgba(255,255,255,.15);border:0;color:#fff;width:35px;height:35px;border-radius:9px;font-size:21px;cursor:pointer}
+.wrap{padding:15px;max-width:700px;margin:0 auto}
+h2{font-size:13.5px;font-weight:650;margin:20px 0 9px;color:var(--steel)}
+h2:first-child{margin-top:2px}
+.card{background:#fff;border:1px solid var(--rule);border-radius:12px;overflow:hidden}
+.card+.card{margin-top:11px}
+label.f{display:block;border-bottom:1px solid var(--rule);padding:8px 13px}
+label.f:last-child{border-bottom:0}
+label.f span{display:block;font-size:11px;color:var(--steel)}
+label.f input,label.f select{width:100%;border:0;outline:0;font:inherit;font-size:16px;background:transparent;padding:3px 0 2px;color:var(--ink)}
+.r2{display:flex}.r2>label.f{flex:1;border-right:1px solid var(--rule)}.r2>label.f:last-child{border-right:0}
+textarea{width:100%;border:1px solid var(--rule);border-radius:11px;padding:11px 13px;font:inherit;font-size:15px;min-height:80px;background:#fff;outline:0}
+input:focus,select:focus,textarea:focus{outline:2px solid #2f5fa8;outline-offset:1px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.tile{background:#fff;border:1.5px solid var(--rule);border-radius:12px;padding:13px 11px;font:inherit;font-size:14px;
+      font-weight:550;text-align:left;color:var(--ink);cursor:pointer;min-height:70px;display:flex;flex-direction:column;justify-content:center;gap:3px}
+.tile small{font-weight:400;color:var(--steel);font-size:11.5px}
+.tile[aria-pressed="true"]{border-color:var(--navy);background:#eef2f9;box-shadow:inset 0 0 0 1px var(--navy)}
+.item{border-bottom:1px solid var(--rule);padding:11px 13px}
+.item:last-child{border-bottom:0}
+.item .cod{font-size:11px;color:var(--steel);font-weight:600;letter-spacing:.3px}
+.item .txt{font-size:15.5px;margin:2px 0 9px;line-height:1.3}
+.marks{display:grid;grid-template-columns:2fr 1.4fr 1fr;gap:7px}
+.mk{border:1.5px solid var(--rule);background:#fff;border-radius:10px;padding:12px 4px;font:inherit;font-size:13.5px;
+    font-weight:650;color:var(--steel);cursor:pointer;min-height:48px}
+.mk[data-v="ok"][aria-pressed="true"]{background:var(--okbg);border-color:var(--ok);color:var(--ok)}
+.mk[data-v="nc"][aria-pressed="true"]{background:var(--ncbg);border-color:var(--nc);color:var(--nc)}
+.mk[data-v="na"][aria-pressed="true"]{background:var(--nabg);border-color:var(--na);color:var(--na)}
+.ncbox{margin-top:10px;border:1.5px solid var(--nc);background:var(--ncbg);border-radius:11px;padding:11px}
+.ncbox h4{margin:0 0 8px;font-size:12px;color:var(--nc);font-weight:700}
+.foto{display:flex;gap:9px;align-items:center;margin-bottom:9px}
+.foto img{width:70px;height:70px;object-fit:cover;border-radius:9px;border:1px solid var(--rule)}
+.foto button{flex:1;border:1.5px solid var(--nc);background:#fff;color:var(--nc);border-radius:10px;padding:13px 8px;
+             font:inherit;font-size:14px;font-weight:650;cursor:pointer;min-height:48px}
+.dest{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px}
+.dest button{border:1.5px solid var(--rule);background:#fff;border-radius:10px;padding:12px 6px;font:inherit;
+             font-size:13.5px;font-weight:600;color:var(--steel);cursor:pointer;min-height:46px}
+.dest button[aria-pressed="true"]{border-color:var(--navy);background:#eef2f9;color:var(--navy)}
+.ncbox textarea{min-height:64px;font-size:14.5px}
+.prog{height:5px;background:#dde1e7}.prog i{display:block;height:100%;background:var(--ok);width:0;transition:width .18s}
+.btn{display:block;width:100%;border:0;border-radius:12px;padding:15px;font:inherit;font-size:16px;font-weight:650;cursor:pointer}
+.btn.primary{background:var(--navy);color:#fff}
+.btn.ghost{background:#fff;color:var(--navy);border:1.5px solid var(--rule)}
+.btn+.btn{margin-top:9px}
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(242,243,246,.97);border-top:1px solid var(--rule);
+      padding:9px 15px calc(9px + env(safe-area-inset-bottom,0));backdrop-filter:blur(6px)}
+.dock .in{max-width:700px;margin:0 auto}
+.dock.acima{bottom:56px;padding-bottom:9px}
+body.comAbas{padding-bottom:210px}
+.tabs{display:flex;gap:4px;background:#fff;border-top:1px solid var(--rule);padding:6px 8px calc(6px + env(safe-area-inset-bottom,0));
+      position:fixed;left:0;right:0;bottom:0;z-index:29}
+.tabs button{flex:1;border:0;background:none;font:inherit;font-size:10.5px;font-weight:600;color:var(--steel);
+             padding:8px 2px;cursor:pointer;border-radius:9px}
+.tabs button[aria-pressed="true"]{color:var(--navy);background:#eef2f9}
+.row{display:flex;align-items:center;gap:11px;padding:12px 13px;border-bottom:1px solid var(--rule);background:#fff;
+     width:100%;border-left:0;border-right:0;border-top:0;font:inherit;text-align:left;cursor:pointer}
+.row:last-child{border-bottom:0}
+.row .g{flex:1;min-width:0}
+.row b{font-size:15px;display:block}
+.row small{color:var(--steel);font-size:12.5px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.list{background:#fff;border:1px solid var(--rule);border-radius:12px;overflow:hidden}
+.pill{font-size:11px;font-weight:700;padding:5px 9px;border-radius:999px;white-space:nowrap}
+.p-lib{background:var(--okbg);color:var(--ok)}.p-rep{background:var(--ncbg);color:var(--nc)}.p-and{background:var(--amberbg);color:var(--amber)}
+.syncst{font-size:10.5px;font-weight:700;padding:5px 9px;border-radius:999px;white-space:nowrap;background:rgba(255,255,255,.16);color:#fff}
+.syncst.ok{background:rgba(27,127,75,.95)}.syncst.busy{background:rgba(168,113,26,.95)}.syncst.err{background:rgba(189,43,33,.95)}.syncst.off{background:rgba(255,255,255,.18)}
+.empty{text-align:center;color:var(--steel);padding:38px 20px;font-size:14.5px}
+.note{font-size:12.5px;color:var(--steel);margin:9px 2px 0;line-height:1.45}
+.warn{background:var(--amberbg);border:1px solid #e3cb99;color:#7a5410;border-radius:10px;padding:10px 12px;font-size:13px;margin-top:11px}
+.verdict{border-radius:12px;padding:15px;font-weight:700;font-size:17px;text-align:center;border:1.5px solid}
+.v-lib{background:var(--okbg);border-color:var(--ok);color:var(--ok)}
+.v-rep{background:var(--ncbg);border-color:var(--nc);color:var(--nc)}
+.v-pend{background:#fff;border-color:var(--rule);color:var(--steel)}
+.prop{border-bottom:1px solid var(--rule);padding:11px 13px}
+.prop:last-child{border-bottom:0}
+.prop .hd{display:flex;gap:10px;align-items:flex-start}
+.prop .hd .g{flex:1}
+.prop .hd .st{font-size:11px;font-weight:700;padding:3px 7px;border-radius:999px}
+.tg{border:1.5px solid var(--rule);background:#fff;border-radius:9px;padding:9px 12px;font:inherit;font-size:13px;
+    font-weight:650;color:var(--steel);cursor:pointer;white-space:nowrap}
+.tg[aria-pressed="true"]{border-color:var(--navy);background:var(--navy);color:#fff}
+.calc{margin-top:10px;border-top:1px dashed var(--rule);padding-top:9px}
+.calc .l{display:flex;gap:8px;align-items:center;margin-bottom:7px}
+.calc .l span{flex:1;font-size:13px;color:var(--steel)}
+.calc .l input{width:92px;border:1px solid var(--rule);border-radius:8px;padding:8px;font:inherit;font-size:14px;text-align:right}
+.tot{display:flex;justify-content:space-between;font-size:14px;padding:5px 0}
+.tot b{font-variant-numeric:tabular-nums}
+.big{background:#fff;border:1px solid var(--rule);border-radius:12px;padding:14px;margin-top:11px}
+.big .tot{font-size:15px}
+.mg-ok{color:var(--ok);font-weight:700}.mg-bad{color:var(--nc);font-weight:700}
+.sheetwrap{position:fixed;inset:0;z-index:80;background:#fff;overflow:auto}
+.sheettop{position:sticky;top:0;display:flex;gap:9px;padding:11px 14px;background:var(--navy);z-index:2}
+.sheettop button{flex:1;border:0;border-radius:10px;padding:13px;font:inherit;font-size:15px;font-weight:650;background:rgba(255,255,255,.16);color:#fff;cursor:pointer}
+.sheettop button.pr{background:#fff;color:var(--navy)}
+.sheet{padding:14px;max-width:820px;margin:0 auto;color:#000;font:12px/1.4 Arial,Helvetica,sans-serif}
+.sheet table{width:100%;border-collapse:collapse}
+.sheet td,.sheet th{border:.8px solid #777;padding:5px 7px;vertical-align:middle}
+.sheet h1{background:#16233c;color:#fff;font-size:14px;padding:8px;margin:0 0 9px;text-align:center}
+.sheet .sec{background:#16233c;color:#fff;text-align:left;font-size:12px}
+.sheet .cod{width:36px;text-align:center;font-weight:bold}
+.sheet .mk{text-align:center;font-weight:bold}
+.sheet .hd th{background:#dedede;font-size:10px}
+.sheet .id td{font-size:11px}.sheet .id b{display:block;font-size:9px;color:#555;font-weight:normal}
+.sheet .box{border:.8px solid #777;padding:7px 9px;margin-top:9px;font-size:11px}
+.sheet .box b{font-size:9px;color:#555;font-weight:normal;display:block;margin-bottom:3px}
+.sheet .res{border:1px solid #000;padding:9px;margin-top:9px;text-align:center;font-weight:bold;font-size:14px}
+.sheet .ass{display:flex;gap:24px;margin-top:28px}
+.sheet .ass div{flex:1;border-top:1px solid #000;padding-top:5px;font-size:10px;text-align:center}
+.sheet .ass b{display:block;font-size:11px}
+.sheet .ev h2{font-size:13px;margin:0 0 9px}
+.sheet .ev .g{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
+.sheet .ev figure{margin:0;border:.8px solid #777;padding:5px}
+.sheet .ev img{width:100%;height:auto;display:block}
+.sheet .ev figcaption{font-size:9px;margin-top:4px}
+@media print{
+  body.printing>*:not(.sheetwrap){display:none!important}
+  .sheettop{display:none!important}
+  .sheetwrap{position:static;overflow:visible}
+  .sheet{padding:0;max-width:none;font-size:10.5px}
+  .sheet .ev{page-break-before:always}
+  @page{size:A4;margin:12mm}
+}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <button class="back" id="back" style="display:none">‹</button>
+  <h1 id="ttl">Ordens de serviço<span class="sub" id="sub">New Válvulas</span></h1>
+  <span class="syncst off" id="syncStatus">•</span>
+</div>
+<div class="prog" id="pw" style="display:none"><i id="pb"></i></div>
+<div class="wrap" id="app"></div>
+<div class="dock" id="dock" style="display:none"><div class="in" id="dockIn"></div></div>
+<div class="tabs" id="tabs"></div>
+<input type="file" accept="image/*" capture="environment" id="cam" style="display:none">
+
+<script>
+/* ============================================================ DADOS */
+
+const BITOLAS=[2,3,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,36];
+const MECANICOS=["André Galo","Almir Bruno","Marcos Júnior","Hudson Sanches","William Tilápia"];
+
+const PROC_BORBOLETA=["Desmontagem","Limpeza mecânica e desengraxe","Jateamento abrasivo",
+  "Ensaio de líquido penetrante (LP)","Substituição dos fixadores","Substituição das gaxetas",
+  "Substituição da sede","Montagem","Teste hidrostático","Teste funcional","Pintura padrão New Equipamentos"];
+
+const TIPOS={
+  bb_mono:{nome:"Borboleta monobloco",desc:"Sede elastomérica",proc:PROC_BORBOLETA,
+    aval:["Corpo","Disco","Haste","Caixa redutora","Alavanca","Pinos","Tampão"]},
+  bb_bi:{nome:"Borboleta bicêntrica",desc:"Sede metálica ou anel",proc:PROC_BORBOLETA,prov:true,
+    aval:["Corpo","Disco","Haste","Anel de vedação","Caixa redutora","Pinos","Buchas"]},
+  globo_man:{nome:"Globo manual",desc:"Haste roscada e volante",prov:true,
+    proc:["Desmontagem","Limpeza mecânica e desengraxe","Jateamento abrasivo","Ensaio de líquido penetrante (LP)",
+      "Lapidação ou substituição de sede e tampão","Substituição das gaxetas","Substituição dos fixadores",
+      "Montagem","Teste hidrostático","Teste funcional","Pintura padrão New Equipamentos"],
+    aval:["Corpo","Tampão","Sede","Haste","Castelo","Volante","Gaxeta"]},
+  globo_aut:{nome:"Globo automática",desc:"Atuador e posicionador",prov:true,
+    proc:["Desmontagem","Limpeza mecânica e desengraxe","Jateamento abrasivo","Ensaio de líquido penetrante (LP)",
+      "Lapidação ou substituição de sede e tampão","Substituição das gaxetas","Revisão do atuador","Montagem",
+      "Teste hidrostático","Calibração de curso e posicionador","Teste funcional","Pintura padrão New Equipamentos"],
+    aval:["Corpo","Tampão","Sede","Gaiola","Haste","Atuador","Posicionador"]},
+  gaveta:{nome:"Gaveta",desc:"Cunha e haste ascendente",prov:true,
+    proc:["Desmontagem","Limpeza mecânica e desengraxe","Jateamento abrasivo","Ensaio de líquido penetrante (LP)",
+      "Lapidação ou substituição de sedes e cunha","Substituição das gaxetas","Substituição dos fixadores",
+      "Montagem","Teste hidrostático","Teste funcional","Pintura padrão New Equipamentos"],
+    aval:["Corpo","Cunha","Sedes","Haste","Castelo","Volante","Gaxeta"]},
+  esfera:{nome:"Esfera",desc:"Assentos e vedação de haste",prov:true,
+    proc:["Desmontagem","Limpeza mecânica e desengraxe","Jateamento abrasivo","Ensaio de líquido penetrante (LP)",
+      "Substituição dos assentos","Substituição da vedação da haste","Substituição dos fixadores",
+      "Montagem","Teste hidrostático","Teste funcional","Pintura padrão New Equipamentos"],
+    aval:["Corpo","Esfera","Assentos","Haste","Vedação da haste","Alavanca ou atuador","Fixadores"]}
+};
+
+const FABRICANTES_PADRAO=[
+  {nome:"Bray", cnpj:"06.979.206/0001-91", razao:"Bray Controls Indústria de Válvulas Ltda",
+   endereco:"Av. João Vieira, 58, Cascata", municipio:"Paulínia", uf:"SP", cep:"13140-031"},
+  {nome:"Niagara", cnpj:"33.500.612/0001-00", razao:"Niagara Indústria e Comércio de Válvulas Ltda",
+   endereco:"Estrada Matthias Schmitt, 1250, Lagoa Grande", municipio:"Embu-Guaçu", uf:"SP", cep:"06900-000"},
+  {nome:"Zanardo", cnpj:"78.748.183/0001-15", razao:"Zanardo Instrumentação Industrial Ltda",
+   endereco:"Rua dos Buritis, 201, Parque Industrial II", municipio:"Araçatuba", uf:"SP", cep:"16012-170"},
+  {nome:"Inval", cnpj:"40.841.407/0001-66", razao:"Inval Válvulas e Equipamentos Ltda",
+   endereco:"Av. Juscelino Kubitschek de Oliveira, 460, Distrito Industrial",
+   municipio:"Santa Bárbara d'Oeste", uf:"SP", cep:"13457-190"},
+  {nome:"Interválvula", cnpj:"09.258.355/0001-50", razao:"Inter-Válvulas Indústria, Comércio, Importação e Exportação Ltda",
+   endereco:"Rua Romano Coro, 999", municipio:"Ribeirão Preto", uf:"SP", cep:"14075-630"},
+  {nome:"MRV", cnpj:"18.964.805/0001-10", razao:"MRV Comércio de Válvulas Ltda (Grupo Micro Rio)",
+   endereco:"Rua Gaspar Barreto, 209, Vila Alpina", municipio:"São Paulo", uf:"SP", cep:"03211-000"},
+  {nome:"CSR", cnpj:"25.080.811/0001-70", razao:"CSR Indústria e Comércio de Válvulas e Acessórios Industriais Ltda",
+   endereco:"Av. da Saúde, 997, Saúde", municipio:"Mogi Mirim", uf:"SP", cep:"13800-700"},
+  {nome:"RTS", cnpj:"59.420.349/0001-25", razao:"RTS Indústria e Comércio de Válvulas Ltda (Grupo VAG do Brasil)",
+   endereco:"Rua Arroio Chuí, 26, Vila Flora", municipio:"Guarulhos", uf:"SP", cep:"07042-170"},
+  {nome:"MRX"}, {nome:"Tecval (Lupatech)"}, {nome:"Mipel (Lupatech)"}, {nome:"Valmicro (Lupatech)"},
+  {nome:"Keystone (Emerson)", cnpj:"43.213.776/0001-00", razao:"Emerson Process Management Ltda",
+   endereco:"Av. Hollingsworth, 325, Iporanga", municipio:"Sorocaba", uf:"SP", cep:"18087-105"},
+  {nome:"Vanessa (Emerson)", cnpj:"43.213.776/0001-00", razao:"Emerson Process Management Ltda",
+   endereco:"Av. Hollingsworth, 325, Iporanga", municipio:"Sorocaba", uf:"SP", cep:"18087-105"},
+  {nome:"Fisher (Emerson)", cnpj:"43.213.776/0001-00", razao:"Emerson Process Management Ltda",
+   endereco:"Av. Hollingsworth, 325, Iporanga", municipio:"Sorocaba", uf:"SP", cep:"18087-105"},
+  {nome:"Saint-Gobain PAM (ex-Barbará)"},
+  {nome:"KSB", cnpj:"60.680.873/0001-14", razao:"KSB Brasil Ltda",
+   endereco:"Rua José Rabello Portella, 638, Jd. Maria de Fátima", municipio:"Várzea Paulista", uf:"SP", cep:"13220-540"},
+  {nome:"Flowserve", cnpj:"33.273.681/0001-10", razao:"Flowserve do Brasil Ltda",
+   endereco:"Estrada do Pedregoso, 1975, Campo Grande", municipio:"Rio de Janeiro", uf:"RJ", cep:"23078-450"},
+  {nome:"Valmet / Neles"},
+  {nome:"Spirax Sarco", cnpj:"61.193.074/0001-86", razao:"Spirax-Sarco Indústria e Comércio Ltda",
+   endereco:"Estrada Manoel Lages do Chão, 268, Jardim Caiapiá", municipio:"Cotia", uf:"SP", cep:"06705-050"},
+  {nome:"MGA"}, {nome:"Genebre"},
+  {nome:"Crane"}, {nome:"Velan"}, {nome:"Xomox"}, {nome:"AMRI"},
+  {nome:"Poligon"}, {nome:"Carbofluor"}, {nome:"JCN"}, {nome:"Isoval"}
+];
+
+const TAXAS_PADRAO=[
+  {id:"mo1",nome:"Mecânico",valor:0,tipo:"mo"},
+  {id:"m1",nome:"Torno CNC NHM 1001",valor:0,tipo:"maq"},
+  {id:"m2",nome:"Torno Mascote",valor:0,tipo:"maq"},
+  {id:"m3",nome:"Mandrilhadora",valor:0,tipo:"maq"},
+  {id:"m4",nome:"Fresa",valor:0,tipo:"maq"},
+  {id:"m5",nome:"Radial",valor:0,tipo:"maq"}
+];
+
+/* ============================================================ ESTADO */
+
+let cfg={taxas:JSON.parse(JSON.stringify(TAXAS_PADRAO))};
+let clientes=[],fabricantes=[],indice=[];
+let OS=null, V=null;                       // OS aberta e válvula aberta
+let aba="os", tela="lista", etapa=0, filtro="", ctxCliente=null, ctxFab=null;
+const ETAPAS=["tipo","dados","proc","aval","nc","resumo"];
+
+const uid=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const esc=s=>(s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const brl=n=>(Number(n)||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const hoje=()=>new Date().toLocaleDateString("pt-BR");
+const soDig=v=>(v||"").replace(/\D/g,"");
+const fmtCnpj=v=>{const d=soDig(v);return d.length===14?d.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,"$1.$2.$3/$4-$5"):(v||"");};
+
+function fabDe(f){ return {id:uid("fab"),nome:f.nome,cnpj:f.cnpj||"",fantasia:f.razao||"",
+  endereco:f.endereco||"",municipio:f.municipio||"",uf:f.uf||"",cep:f.cep||"",telefone:"",email:""}; }
+
+function novaOS(){ return {id:uid("O"),numero:"",clienteId:"",data:hoje(),criado:new Date().toISOString(),
+  atualizado:new Date().toISOString(),valvulas:[],a1:"",d1:""}; }
+function novaValvula(n){ return {id:uid("V"),item:n,tipo:null,fabId:"",modelo:"",bitola:"",tag:"",
+  montador:"",pintor:"",video:"",m1:{},nc:{},prop:{}}; }
+
+function itens(c,v){ const val=v||V; if(!val||!val.tipo) return [];
+  const t=TIPOS[val.tipo]; return c==="proc"?t.proc:c==="aval"?t.aval:[]; }
+const chavesAval=v=>itens("aval",v).map((_,i)=>"aval-"+i);
+const textoItem=(k,v)=>itens("aval",v)[+k.split("-")[1]];
+
+function autoProc(){ if(!V||!V.tipo) return; itens("proc").forEach((_,i)=>{ V.m1["proc-"+i]="ok"; }); }
+
+function ncPendente(v){ const val=v||V;
+  return chavesAval(val).filter(k=>{ if(val.m1[k]!=="nc") return false;
+    const d=val.nc[k]||{}; return !(d.fotos&&d.fotos.length)||!d.destino||!(d.rec||"").trim(); }); }
+
+function valvulaCompleta(v){ const ks=chavesAval(v); return ks.length>0 && ks.every(k=>v.m1[k]) && !ncPendente(v).length; }
+function valvulaTemNC(v){ return chavesAval(v).some(k=>v.m1[k]==="nc"); }
+
+function situacaoOS(o){
+  if(!o.valvulas.length) return "SEM VÁLVULAS";
+  const todas=o.valvulas.every(valvulaCompleta);
+  if(!todas || !o.a1) return "EM ANDAMENTO";
+  return o.valvulas.some(valvulaTemNC) ? "COM ADITIVO" : "CONCLUÍDA";
+}
+
+function custoItem(p){ let c=Number(p.material)||0;
+  (cfg.taxas||[]).forEach(t=>{ c+=(Number((p.horas||{})[t.id])||0)*(Number(t.valor)||0); }); return c; }
+
+function aditivosOS(o){
+  const out=[];
+  o.valvulas.forEach(v=>chavesAval(v).filter(k=>v.m1[k]==="nc").forEach(k=>{
+    const p=(v.prop||{})[k]||{};
+    out.push({v,k,p,texto:textoItem(k,v)});
+  }));
+  return out;
+}
+function totaisOS(o){ let custo=0,preco=0;
+  aditivosOS(o).filter(a=>a.p.inc).forEach(a=>{ custo+=custoItem(a.p); preco+=Number(a.p.preco)||0; });
+  return {custo,preco,margem:preco-custo,pct:preco>0?(preco-custo)/preco*100:0}; }
+
+/* ============================================================ STORAGE */
+
+const mem={};
+function local(k,v){ try{ if(v===undefined) return window.localStorage.getItem(k);
+  if(v===null){ window.localStorage.removeItem(k); return true; }
+  window.localStorage.setItem(k,v); return true; }catch(e){ return v===undefined?null:false; } }
+async function get(k){
+  try{ if(window.storage&&window.storage.get){ const r=await window.storage.get(k); if(r) return JSON.parse(r.value); } }catch(e){}
+  if(mem[k]!==undefined) return JSON.parse(mem[k]);
+  const l=local(k); if(l){ try{ return JSON.parse(l); }catch(e){} }
+  return null;
+}
+async function set(k,v){ const t=JSON.stringify(v); mem[k]=t;
+  const okLocal=local(k,t);
+  let okRemote=false;
+  try{ if(window.storage&&window.storage.set){ await window.storage.set(k,t); okRemote=true; } }catch(e){}
+  if(!okLocal&&!okRemote){
+    try{ aviso("ATENÇÃO: não deu para salvar neste aparelho — memória cheia. Exporte um backup e libere espaço. Fotos recentes podem NÃO ter sido gravadas."); }catch(e){}
+    return false;
+  }
+  if(!aplicandoNuvem){ marcarPendente(k); if(ehDado(k)) agendarSync(); }
+  return true; }
+
+/* ---- controle de backup */
+function ehDado(k){ return (String(k).startsWith("os:")&&k!=="os:index")||k==="clientes"||k==="fabricantes"||k==="cfg"; }
+function marcarPendente(k){ if(!ehDado(k)) return;
+  try{ const n=(parseInt(local("bkp:pend"),10)||0)+1; local("bkp:pend",String(n)); }catch(e){} }
+function marcarBackupFeito(){ try{ local("bkp:ultimo",new Date().toISOString()); local("bkp:pend","0"); }catch(e){} }
+function bkpInfo(){ const u=local("bkp:ultimo"); const pend=parseInt(local("bkp:pend"),10)||0;
+  let dias=null; if(u){ const t=new Date(u).getTime(); if(!isNaN(t)) dias=Math.floor((Date.now()-t)/86400000); }
+  return {ultimo:u,pend,dias}; }
+function precisaBackup(){ const b=bkpInfo(); return indice.length>0 && (!b.ultimo || (b.dias!=null&&b.dias>=2) || b.pend>=8); }
+
+async function gerarPacote(){
+  const pacote={versao:1, exportado:new Date().toISOString(), cfg, clientes, fabricantes, os:[]};
+  for(const m of indice){ const o=(OS&&OS.id===m.id)?OS:await get("os:"+m.id); if(o) pacote.os.push(o); }
+  const txt=JSON.stringify(pacote);
+  const nome="backup_newvalvulas_"+new Date().toISOString().slice(0,16).replace(/[:T]/g,"-")+".json";
+  return {txt,nome,pacote};
+}
+async function exportarBackup(opts){ opts=opts||{};
+  const {txt,nome}=await gerarPacote();
+  let feito=false;
+  if(opts.compartilhar && navigator.share){
+    try{ const file=new File([txt],nome,{type:"application/json"});
+      if(navigator.canShare && navigator.canShare({files:[file]})){ await navigator.share({files:[file],title:"Backup New Válvulas"}); feito=true; }
+      else { await navigator.share({title:"Backup New Válvulas",text:txt}); feito=true; }
+    }catch(e){ if(e&&e.name==="AbortError") return {cancelado:true}; }
+  }
+  if(!feito){
+    try{ const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([txt],{type:"application/json"}));
+      a.download=nome; document.body.appendChild(a); a.click(); a.remove(); feito=true;
+    }catch(e){ aviso("Não consegui gerar o arquivo de backup."); }
+  }
+  if(feito){ marcarBackupFeito(); aviso("Backup gerado. Guarde o arquivo no seu servidor."); }
+  return {txt,nome,feito};
+}
+async function enviarServidor(){
+  const url=(local("bkp:url")||"").trim();
+  if(!url){ aviso("Preencha a URL do seu servidor primeiro."); return false; }
+  try{ const {txt}=await gerarPacote();
+    const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:txt});
+    if(r.ok){ marcarBackupFeito(); aviso("Backup enviado pro seu servidor."); return true; }
+    aviso("Seu servidor respondeu "+r.status+". Backup NÃO confirmado."); return false;
+  }catch(e){ aviso("Não consegui enviar pro servidor (verifique URL, HTTPS e CORS)."); return false; }
+}
+
+async function boot(){
+  cfg=await get("cfg")||cfg;
+  if(!cfg.taxas||!cfg.taxas.length) cfg.taxas=JSON.parse(JSON.stringify(TAXAS_PADRAO));
+  clientes=await get("clientes")||[];
+  fabricantes=await get("fabricantes")||[];
+  if(!fabricantes.length){
+    fabricantes=FABRICANTES_PADRAO.map(f=>fabDe(f));
+    await set("fabricantes",fabricantes);
+  }
+  indice=await get("os:index")||[];
+}
+async function salvar(){
+  if(!OS) return;
+  if(!aplicandoNuvem) OS.atualizado=new Date().toISOString();
+  const meta={id:OS.id,numero:OS.numero,clienteId:OS.clienteId,data:OS.data,
+    qtd:OS.valvulas.length,situacao:situacaoOS(OS),criado:OS.criado};
+  const i=indice.findIndex(x=>x.id===OS.id);
+  if(i>=0) indice[i]=meta; else indice.unshift(meta);
+  await set("os:"+OS.id,OS); await set("os:index",indice); cacheOS=null;
+}
+async function abrirOS(id){ const d=await get("os:"+id); if(d){ OS=d; return true; } return false; }
+async function apagarOS(id){ indice=indice.filter(x=>x.id!==id);
+  await set("os:index",indice); await set("os:"+id,null); local("os:"+id,null); }
+
+/* ---- CNPJ */
+async function consultarCNPJ(cnpj){
+  const d=soDig(cnpj);
+  if(d.length!==14) throw new Error("CNPJ precisa ter 14 dígitos.");
+  const fontes=[
+    {url:"https://brasilapi.com.br/api/cnpj/v1/"+d,mapa:j=>({nome:j.razao_social||j.nome_fantasia||"",
+      fantasia:j.nome_fantasia||"",
+      endereco:[j.descricao_tipo_de_logradouro,j.logradouro,j.numero].filter(Boolean).join(" ")+(j.bairro?", "+j.bairro:""),
+      municipio:j.municipio||"",uf:j.uf||"",cep:j.cep||"",telefone:j.ddd_telefone_1||"",email:j.email||"",
+      situacao:j.descricao_situacao_cadastral||""})},
+    {url:"https://publica.cnpj.ws/cnpj/"+d,mapa:j=>{const e=j.estabelecimento||{};
+      return {nome:j.razao_social||"",fantasia:e.nome_fantasia||"",
+      endereco:[e.tipo_logradouro,e.logradouro,e.numero].filter(Boolean).join(" ")+(e.bairro?", "+e.bairro:""),
+      municipio:(e.cidade||{}).nome||"",uf:(e.estado||{}).sigla||"",cep:e.cep||"",
+      telefone:[e.ddd1,e.telefone1].filter(Boolean).join(" "),email:e.email||"",situacao:e.situacao_cadastral||""};}}
+  ];
+  let ultimo="";
+  for(const f of fontes){
+    try{ const r=await fetch(f.url);
+      if(!r.ok){ ultimo=r.status===404?"CNPJ não encontrado na Receita.":"Consulta indisponível agora."; continue; }
+      const dados=f.mapa(await r.json());
+      if(dados.nome) return dados;
+    }catch(e){ ultimo="Sem acesso à consulta online. Preencha à mão."; }
+  }
+  throw new Error(ultimo||"Não foi possível consultar este CNPJ.");
+}
+
+/* ---- foto */
+const cam=document.getElementById("cam");
+function tirarFoto(cb){
+  cam.value="";
+  cam.onchange=()=>{ const f=cam.files[0]; if(!f) return;
+    const fr=new FileReader();
+    fr.onload=()=>{ const img=new Image();
+      img.onload=()=>{ const max=900,r=Math.min(1,max/Math.max(img.width,img.height));
+        const cv=document.createElement("canvas");
+        cv.width=Math.round(img.width*r); cv.height=Math.round(img.height*r);
+        cv.getContext("2d").drawImage(img,0,0,cv.width,cv.height);
+        cb(cv.toDataURL("image/jpeg",0.5)); };
+      img.src=fr.result; };
+    fr.readAsDataURL(f); };
+  cam.click();
+}
+
+/* ============================================================ RENDER */
+
+const app=document.getElementById("app"),dock=document.getElementById("dock"),dockIn=document.getElementById("dockIn"),
+  back=document.getElementById("back"),ttl=document.getElementById("ttl"),sub=document.getElementById("sub"),
+  pw=document.getElementById("pw"),pb=document.getElementById("pb"),tabsEl=document.getElementById("tabs");
+
+function cab(t,s,v){ ttl.childNodes[0].nodeValue=t; sub.textContent=s||""; back.style.display=v?"block":"none"; }
+function setDock(h,comAbas){
+  if(!h){ dock.style.display="none"; dockIn.innerHTML=""; dock.classList.remove("acima");
+    tabsEl.style.display="flex"; document.body.classList.add("comAbas"); return; }
+  dock.style.display="block"; dockIn.innerHTML=h;
+  if(comAbas){ tabsEl.style.display="flex"; dock.classList.add("acima"); document.body.classList.add("comAbas"); }
+  else { tabsEl.style.display="none"; dock.classList.remove("acima"); document.body.classList.remove("comAbas"); }
+}
+function prog(p){ if(p==null){pw.style.display="none";return;} pw.style.display="block"; pb.style.width=(p*100)+"%"; }
+function aviso(msg){ const d=document.createElement("div"); d.className="warn"; d.textContent=msg;
+  d.style.cssText+="position:fixed;left:15px;right:15px;bottom:150px;z-index:60";
+  document.body.appendChild(d); setTimeout(()=>d.remove(),4500); }
+
+function tabs(){
+  const t=[["os","OS"],["hist","Histórico"],["cli","Clientes"],["fab","Fabricantes"],["cfg","Taxas"]];
+  tabsEl.innerHTML=t.map(([k,n])=>`<button data-tab="${k}" aria-pressed="${aba===k}">${n}</button>`).join("");
+  tabsEl.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{aba=b.dataset.tab;tela="lista";OS=null;V=null;render();});
+}
+
+function render(){
+  window.scrollTo(0,0); tabs();
+  if(aba==="hist") return tela==="det"?telaHistGrupo():telaHistorico();
+  if(aba==="cfg") return telaTaxas();
+  if(aba==="cli") return tela==="det"?telaClienteDet():cadastro("cli");
+  if(aba==="fab") return tela==="det"?telaFabDet():cadastro("fab");
+  if(tela==="lista") return telaOSs();
+  if(tela==="os") return telaOS();
+  if(tela==="aditivo") return telaAditivo();
+  return telaEtapa();
+}
+
+/* ---------------- lista de OS */
+function telaOSs(){
+  cab("Ordens de serviço","New Válvulas",false); prog(null);
+  const q=filtro.trim().toLowerCase();
+  const vis=!q?indice:indice.filter(m=>{
+    const cli=(clientes.find(c=>c.id===m.clienteId)||{}).nome||"";
+    return [m.numero,cli].join(" ").toLowerCase().includes(q); });
+  const linhas=vis.map(m=>{
+    const s=m.situacao||"EM ANDAMENTO";
+    const cls=s==="CONCLUÍDA"?"p-lib":"p-and";
+    const cli=(clientes.find(c=>c.id===m.clienteId)||{}).nome||"sem cliente";
+    return `<button class="row" data-o="${m.id}"><span class="g"><b>${esc(m.numero)||"sem número"}</b>
+      <small>${esc(cli)} · ${m.qtd||0} válvula${m.qtd===1?"":"s"} · ${esc(m.data||"")}</small></span>
+      <span class="pill ${cls}">${s.toLowerCase()}</span></button>`;
+  }).join("");
+  const bi=bkpInfo();
+  const banner=precisaBackup()?`<div class="warn" style="margin-bottom:11px">
+      <b>${!bi.ultimo?"Você ainda não fez backup.":"Último backup há "+bi.dias+" dia"+(bi.dias===1?"":"s")+"."}</b>
+      ${bi.pend?" "+bi.pend+" alteração(ões) sem cópia de segurança.":""} Faça um backup e guarde no seu servidor.
+      <button class="btn primary" id="bkpnow" style="margin-top:9px;padding:12px">Fazer backup agora</button></div>`:"";
+  app.innerHTML=banner+(indice.length?`<label class="f" style="background:#fff;border:1px solid var(--rule);border-radius:12px;margin-bottom:11px">
+      <span>Buscar por número da OS ou cliente</span><input id="busca" value="${esc(filtro)}" placeholder="digite para filtrar"></label>`:"")
+    +(linhas?`<div class="list">${linhas}</div>`:`<div class="empty">Nenhuma ordem de serviço.<br>Toque em abrir OS para começar.</div>`);
+  const bn=document.getElementById("bkpnow");
+  if(bn) bn.onclick=async()=>{ const r=await exportarBackup({compartilhar:true}); if(r&&r.cancelado) return; telaOSs(); };
+  const bu=document.getElementById("busca");
+  if(bu) bu.oninput=()=>{ filtro=bu.value; const p=bu.selectionStart; telaOSs();
+    const n=document.getElementById("busca"); if(n){n.focus();n.setSelectionRange(p,p);} };
+  setDock(`<button class="btn primary" id="n">Abrir OS</button>`,true);
+  dockIn.querySelector("#n").onclick=()=>{ OS=novaOS(); tela="os"; render(); };
+  app.querySelectorAll("[data-o]").forEach(b=>b.onclick=async()=>{
+    if(await abrirOS(b.dataset.o)){ tela="os"; render(); } else aviso("Não foi possível abrir esta OS."); });
+}
+
+/* ---------------- tela da OS */
+function telaOS(){
+  cab(OS.numero?"OS "+OS.numero:"Nova OS",
+      (clientes.find(c=>c.id===OS.clienteId)||{}).nome||"sem cliente",true);
+  prog(null);
+  back.onclick=async()=>{ if(OS.numero&&OS.clienteId) await salvar(); tela="lista"; OS=null; render(); };
+
+  const optC=`<option value="">— selecionar —</option>`+clientes.map(c=>`<option value="${c.id}" ${OS.clienteId===c.id?"selected":""}>${esc(c.nome)}</option>`).join("")
+    +`<option value="__novo">+ cadastrar novo cliente</option>`;
+
+  const vals=OS.valvulas.map((v,i)=>{
+    const ok=valvulaCompleta(v), nc=valvulaTemNC(v);
+    const fab=(fabricantes.find(f=>f.id===v.fabId)||{}).nome||"";
+    const st=!v.tipo?"sem tipo":ok?(nc?"com não conformidade":"conforme"):"incompleta";
+    const cls=ok?(nc?"p-and":"p-lib"):"p-and";
+    return `<div class="row"><span class="g" data-v="${v.id}" style="cursor:pointer">
+      <b>Item ${v.item} · ${esc(v.tag)||"sem TAG"}</b>
+      <small>${v.tipo?TIPOS[v.tipo].nome:"—"} · ${esc(fab)} ${esc(v.modelo)} ${v.bitola?v.bitola+'"':""}</small></span>
+      <span class="pill ${cls}">${st}</span>
+      <button data-rmv="${v.id}" style="border:0;background:none;color:var(--nc);font-size:20px;cursor:pointer;padding:0 4px">×</button></div>`;
+  }).join("");
+
+  const ad=aditivosOS(OS), T=totaisOS(OS), s=situacaoOS(OS);
+  app.innerHTML=`<div class="card">
+      <div class="r2">
+        <label class="f"><span>Número da OS *</span><input id="osnum" value="${esc(OS.numero)}" placeholder="OS-1042"></label>
+        <label class="f"><span>Data de abertura</span><input value="${esc(OS.data)}" disabled style="color:var(--steel)"></label>
+      </div>
+      <label class="f"><span>Cliente *</span><select id="oscli">${optC}</select></label>
+      <div id="novoCli" style="display:none">
+        <label class="f"><span>CNPJ do cliente</span><input id="ncCnpj" inputmode="numeric" placeholder="00.000.000/0000-00"></label>
+        <label class="f" style="padding:9px 13px"><button class="btn ghost" id="ncBuscar" style="padding:11px">Buscar dados pelo CNPJ</button></label>
+        <label class="f"><span>Razão social</span><input id="ncNome" placeholder="preenche pela consulta"></label>
+        <label class="f"><span>Cidade e UF</span><input id="ncCid" placeholder="opcional"></label>
+        <label class="f" style="padding:9px 13px"><button class="btn ghost" id="ncSalvar" style="padding:11px">Salvar cliente</button></label>
+      </div>
+    </div>
+
+    <h2>Válvulas desta OS</h2>
+    ${vals?`<div class="list">${vals}</div>`:`<div class="empty" style="padding:26px">Nenhuma válvula ainda.</div>`}
+    <button class="btn ghost" id="addv" style="margin-top:10px">Adicionar válvula</button>
+
+    ${ad.length?`<h2>Aditivo</h2><div class="big">
+      <div class="tot"><span>Itens não conformes</span><b>${ad.length}</b></div>
+      <div class="tot"><span>Incluídos na proposta</span><b>${ad.filter(a=>a.p.inc).length}</b></div>
+      <div class="tot"><span>Preço ao cliente</span><b>${brl(T.preco)}</b></div>
+      <div class="tot"><span>Margem</span><b class="${T.margem>=0?"mg-ok":"mg-bad"}">${brl(T.margem)}${T.preco>0?" · "+T.pct.toFixed(1)+"%":""}</b></div>
+    </div><button class="btn ghost" id="verad" style="margin-top:10px">Montar aditivo</button>`:""}
+
+    <h2>Responsável pela inspeção</h2>
+    <div class="card"><div class="r2">
+      <label class="f"><span>Nome</span><input id="osa1" value="${esc(OS.a1)}" placeholder="nome"></label>
+      <label class="f"><span>Data</span><input id="osd1" value="${esc(OS.d1)}" placeholder="${hoje()}"></label>
+    </div></div>
+    <h2>Situação</h2><div class="verdict ${s==="CONCLUÍDA"?"v-lib":"v-pend"}">${s}</div>`;
+
+  document.getElementById("osnum").oninput=e=>OS.numero=e.target.value;
+  document.getElementById("osa1").oninput=e=>OS.a1=e.target.value;
+  document.getElementById("osd1").oninput=e=>OS.d1=e.target.value;
+  const sc=document.getElementById("oscli");
+  sc.onchange=()=>{ if(sc.value==="__novo"){ sc.value=OS.clienteId||"";
+      const b=document.getElementById("novoCli"); b.style.display="block"; b.scrollIntoView({block:"center"}); return; }
+    OS.clienteId=sc.value; };
+
+  const buscar=async()=>{ const b=document.getElementById("ncBuscar"),t=b.textContent;
+    b.textContent="Consultando..."; b.disabled=true;
+    try{ const dd=await consultarCNPJ(document.getElementById("ncCnpj").value);
+      document.getElementById("ncNome").value=dd.nome;
+      document.getElementById("ncCid").value=[dd.municipio,dd.uf].filter(Boolean).join(" / ");
+      window._dadosCli=dd;
+      if(dd.situacao&&!/ATIVA/i.test(dd.situacao)) aviso("Atenção: situação cadastral "+dd.situacao+".");
+    }catch(e){ aviso(e.message); }
+    b.textContent=t; b.disabled=false; };
+  document.getElementById("ncBuscar").onclick=buscar;
+  document.getElementById("ncSalvar").onclick=async()=>{
+    const nome=document.getElementById("ncNome").value.trim();
+    if(!nome){ aviso("Busque pelo CNPJ ou digite o nome."); return; }
+    const dd=window._dadosCli||{};
+    const novo={id:uid("cli"),nome,cnpj:fmtCnpj(document.getElementById("ncCnpj").value),
+      fantasia:dd.fantasia||"",endereco:dd.endereco||"",municipio:dd.municipio||"",uf:dd.uf||"",
+      cep:dd.cep||"",telefone:dd.telefone||"",email:dd.email||""};
+    window._dadosCli=null; clientes.unshift(novo); await set("clientes",clientes);
+    OS.clienteId=novo.id; await salvar(); telaOS(); };
+
+  document.getElementById("addv").onclick=async()=>{
+    if(!OS.numero.trim()){ aviso("Preencha o número da OS antes de adicionar válvulas."); return; }
+    if(!OS.clienteId){ aviso("Selecione o cliente antes de adicionar válvulas."); return; }
+    V=novaValvula(OS.valvulas.length+1); OS.valvulas.push(V);
+    await salvar(); tela="etapa"; etapa=0; render(); };
+
+  app.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>{
+    V=OS.valvulas.find(x=>x.id===b.dataset.v); tela="etapa"; etapa=V.tipo?1:0; render(); });
+  app.querySelectorAll("[data-rmv]").forEach(b=>b.onclick=async()=>{
+    if(!confirm("Excluir esta válvula da OS, com as fotos dela?")) return;
+    OS.valvulas=OS.valvulas.filter(x=>x.id!==b.dataset.rmv);
+    OS.valvulas.forEach((v,i)=>v.item=i+1);
+    await salvar(); telaOS(); });
+  const va=document.getElementById("verad"); if(va) va.onclick=async()=>{ await salvar(); tela="aditivo"; render(); };
+
+  setDock(`<button class="btn primary" id="sv">Salvar OS</button>
+           <button class="btn ghost" id="pl">Gerar laudo da OS</button>
+           <button class="btn ghost" id="del" style="color:var(--nc);border-color:var(--nc)">Excluir OS</button>`);
+  dockIn.querySelector("#sv").onclick=async()=>{
+    if(!OS.numero.trim()||!OS.clienteId){ aviso("Preencha número da OS e cliente."); return; }
+    await salvar(); tela="lista"; OS=null; render(); };
+  dockIn.querySelector("#pl").onclick=async()=>{
+    if(!OS.valvulas.length){ aviso("Adicione ao menos uma válvula."); return; }
+    if(!OS.a1.trim()){ aviso("Preencha o responsável pela inspeção."); return; }
+    await salvar(); pdfLaudo(); };
+  dockIn.querySelector("#del").onclick=async()=>{
+    if(!confirm("Excluir esta OS com todas as válvulas e fotos? Não tem como desfazer.")) return;
+    await apagarOS(OS.id); tela="lista"; OS=null; render(); };
+}
+
+/* ---------------- etapas da válvula */
+function telaEtapa(){
+  const c=ETAPAS[etapa];
+  cab(c==="tipo"?"Tipo de válvula":c==="dados"?"Dados da válvula":c==="proc"?"Processo padrão executado":
+      c==="aval"?"Avaliação dos componentes":c==="nc"?"Não conformidades":"Resumo da válvula",
+      `OS ${esc(OS.numero)} · item ${V.item}`,true);
+  back.onclick=async()=>{ await salvar(); if(etapa>0){etapa--;render();} else {tela="os";V=null;render();} };
+  if(c==="tipo") return etTipo();
+  if(c==="dados") return etDados();
+  if(c==="proc") return etProc();
+  if(c==="aval") return etAval();
+  if(c==="nc") return etNC();
+  return etResumo();
+}
+
+function etTipo(){
+  prog(null);
+  app.innerHTML=`<div class="grid2">`+Object.entries(TIPOS).map(([k,t])=>
+    `<button class="tile" data-t="${k}" aria-pressed="${V.tipo===k}">${t.nome}<small>${t.desc}${t.prov?" · provisório":""}</small></button>`
+  ).join("")+`</div>
+  <p class="note">Só a borboleta monobloco está com o padrão definitivo. Os outros tipos seguem provisórios até você passar o padrão de cada um.</p>`;
+  setDock("");
+  app.querySelectorAll("[data-t]").forEach(b=>b.onclick=async()=>{
+    if(V.tipo&&V.tipo!==b.dataset.t){ V.m1={};V.nc={};V.prop={}; }
+    V.tipo=b.dataset.t; autoProc(); await salvar(); etapa=1; render(); });
+}
+
+function etDados(){
+  prog(null);
+  const optF=`<option value="">— selecionar —</option>`+fabricantes.map(f=>`<option value="${f.id}" ${V.fabId===f.id?"selected":""}>${esc(f.nome)}</option>`).join("")
+    +`<option value="__novo">+ cadastrar</option>`;
+  const optB=`<option value="">— selecionar —</option>`+BITOLAS.map(b=>`<option value="${b}" ${String(V.bitola)===String(b)?"selected":""}>${b}"</option>`).join("");
+  const optM=v=>`<option value="">— selecionar —</option>`+MECANICOS.map(n=>`<option value="${esc(n)}" ${v===n?"selected":""}>${esc(n)}</option>`).join("");
+  const f=(k,r,p)=>`<label class="f"><span>${r}</span><input data-k="${k}" value="${esc(V[k])}" placeholder="${p||""}"></label>`;
+  app.innerHTML=`<div class="card">
+      ${f("tag","TAG ou nº de série *")}
+      <div class="r2">
+        <label class="f"><span>Fabricante</span><select data-s="fabId">${optF}</select></label>
+        <label class="f"><span>Bitola</span><select data-s="bitola">${optB}</select></label>
+      </div>
+      <div id="novoFab" style="display:none">
+        <label class="f"><span>CNPJ do fabricante</span><input id="nfCnpj" inputmode="numeric" placeholder="00.000.000/0000-00"></label>
+        <label class="f" style="padding:9px 13px"><button class="btn ghost" id="nfBuscar" style="padding:11px">Buscar dados pelo CNPJ</button></label>
+        <label class="f"><span>Razão social ou marca</span><input id="nfNome" placeholder="preenche pela consulta"></label>
+        <label class="f" style="padding:9px 13px"><button class="btn ghost" id="nfSalvar" style="padding:11px">Salvar fabricante</button></label>
+      </div>
+      ${f("modelo","Modelo ou linha","ex.: Série 30")}
+      <div class="r2">
+        <label class="f"><span>Mecânico *</span><select data-s="montador">${optM(V.montador)}</select></label>
+        <label class="f"><span>Pintor</span><select data-s="pintor">${optM(V.pintor)}</select></label>
+      </div>
+      ${f("video","Vídeo do teste — arquivo ou link","OS_item_teste.mp4")}
+    </div>
+    <p class="note">Campos com * são obrigatórios. Fabricante, modelo e bitola alimentam o histórico da marca.</p>`;
+  app.querySelectorAll("[data-k]").forEach(i=>i.oninput=()=>V[i.dataset.k]=i.value);
+  app.querySelectorAll("[data-s]").forEach(i=>i.onchange=()=>{
+    if(i.dataset.s==="fabId"&&i.value==="__novo"){ i.value=V.fabId||"";
+      const b=document.getElementById("novoFab"); b.style.display="block"; b.scrollIntoView({block:"center"}); return; }
+    V[i.dataset.s]=i.value; });
+  document.getElementById("nfBuscar").onclick=async()=>{
+    const b=document.getElementById("nfBuscar"),t=b.textContent;
+    b.textContent="Consultando..."; b.disabled=true;
+    try{ const dd=await consultarCNPJ(document.getElementById("nfCnpj").value);
+      document.getElementById("nfNome").value=dd.nome; window._dadosFab=dd;
+    }catch(e){ aviso(e.message); }
+    b.textContent=t; b.disabled=false; };
+  document.getElementById("nfSalvar").onclick=async()=>{
+    const nome=document.getElementById("nfNome").value.trim();
+    if(!nome){ aviso("Busque pelo CNPJ ou digite o nome."); return; }
+    const dd=window._dadosFab||{};
+    const novo={id:uid("fab"),nome,cnpj:fmtCnpj(document.getElementById("nfCnpj").value),
+      fantasia:dd.fantasia||"",endereco:dd.endereco||"",municipio:dd.municipio||"",uf:dd.uf||"",
+      cep:dd.cep||"",telefone:dd.telefone||"",email:dd.email||""};
+    window._dadosFab=null; fabricantes.unshift(novo); await set("fabricantes",fabricantes);
+    V.fabId=novo.id; await salvar(); etDados(); };
+  setDock(`<button class="btn primary" id="go">Continuar</button>`);
+  dockIn.querySelector("#go").onclick=async()=>{
+    const falta=[]; if(!V.tag.trim()) falta.push("TAG"); if(!V.montador) falta.push("mecânico");
+    if(falta.length){ aviso("Preencha: "+falta.join(", ")+"."); return; }
+    await salvar(); etapa=2; render(); };
+}
+
+function etProc(){
+  autoProc(); prog(1);
+  app.innerHTML=`<p class="note" style="margin:0 0 11px">Procedimento padrão da New Equipamentos. Toda válvula passa por todas estas etapas, então elas entram no laudo já como executadas.</p>
+    <div class="card">`+itens("proc").map((t,i)=>
+      `<div class="item"><div class="cod">E-${i+1} · executado</div><div class="txt">${t}</div></div>`).join("")+`</div>`;
+  setDock(`<button class="btn primary" id="go">Continuar</button>`);
+  dockIn.querySelector("#go").onclick=async()=>{ await salvar(); etapa=3; render(); };
+}
+
+function etAval(){
+  const its=itens("aval"), feitos=its.filter((_,i)=>V.m1["aval-"+i]).length;
+  prog(its.length?feitos/its.length:0);
+  app.innerHTML=`<div class="card">`+its.map((t,i)=>{
+    const k="aval-"+i,v=V.m1[k]||"";
+    return `<div class="item"><div class="cod">A-${i+1}</div><div class="txt">${t}</div>
+      <div class="marks">
+        <button class="mk" data-k="${k}" data-v="ok" aria-pressed="${v==="ok"}">Conforme</button>
+        <button class="mk" data-k="${k}" data-v="nc" aria-pressed="${v==="nc"}">Não conf.</button>
+        <button class="mk" data-k="${k}" data-v="na" aria-pressed="${v==="na"}">N/A</button>
+      </div></div>`; }).join("")+`</div>`;
+  app.querySelectorAll(".mk").forEach(b=>b.onclick=async()=>{
+    const k=b.dataset.k;
+    V.m1[k]=V.m1[k]===b.dataset.v?"":b.dataset.v;
+    if(V.m1[k]!=="nc"){ delete V.nc[k]; delete V.prop[k]; }
+    await salvar(); etAval();
+    const el=app.querySelector(`[data-k="${k}"]`); if(el) el.scrollIntoView({block:"center"}); });
+  setDock(`<button class="btn primary" id="go">${feitos<its.length?`Faltam ${its.length-feitos} itens`:"Continuar"}</button>`);
+  dockIn.querySelector("#go").onclick=async()=>{
+    if(feitos<its.length){ aviso("Marque todos os componentes antes de seguir."); return; }
+    await salvar(); etapa=4; render(); };
+}
+
+function etNC(){
+  prog(null);
+  const ks=chavesAval(V).filter(k=>V.m1[k]==="nc");
+  if(!ks.length){
+    app.innerHTML=`<div class="empty">Nenhum componente não conforme.<br>Esta válvula passou em tudo.</div>`;
+    setDock(`<button class="btn primary" id="go">Continuar</button>`);
+    dockIn.querySelector("#go").onclick=async()=>{ await salvar(); etapa=5; render(); };
+    return;
+  }
+  app.innerHTML=`<p class="note" style="margin:0 0 11px">Todo componente não conforme precisa de pelo menos uma foto (até três), destino e recomendação.</p>`+
+    ks.map(k=>{ const d=V.nc[k]||{};
+      return `<div class="card" style="margin-bottom:11px"><div class="item">
+        <div class="cod">A-${+k.split("-")[1]+1} · não conforme</div>
+        <div class="txt">${textoItem(k)}</div>
+        <div class="ncbox"><h4>Evidência e destino</h4>
+          <div class="foto">
+            ${(d.fotos||[]).map((f,n)=>`<span style="position:relative;display:inline-block"><img src="${f}" alt="">
+              <button data-del="${k}" data-n="${n}" style="position:absolute;top:-6px;right:-6px;width:22px;height:22px;min-height:0;
+                border-radius:50%;padding:0;font-size:13px;line-height:1;background:var(--nc);color:#fff;border:0;flex:none">×</button></span>`).join("")}
+            ${(d.fotos||[]).length<3?`<button data-foto="${k}">Foto ${(d.fotos||[]).length+1} de 3</button>`:""}
+          </div>
+          <div class="dest">
+            <button data-d="${k}" data-val="recuperacao" aria-pressed="${d.destino==="recuperacao"}">Recuperação</button>
+            <button data-d="${k}" data-val="substituicao" aria-pressed="${d.destino==="substituicao"}">Não recuperação</button>
+          </div>
+          <textarea data-rec="${k}" placeholder="${d.destino==="substituicao"?"Recomendação: peça a fabricar e por quê":"Recomendação: como recuperar"}">${esc(d.rec)}</textarea>
+        </div></div></div>`; }).join("");
+  app.querySelectorAll("[data-foto]").forEach(b=>b.onclick=()=>{
+    const k=b.dataset.foto;
+    tirarFoto(async img=>{ const d=Object.assign({fotos:[]},V.nc[k]);
+      d.fotos=(d.fotos||[]).concat([img]).slice(0,3); V.nc[k]=d; await salvar(); etNC(); }); });
+  app.querySelectorAll("[data-del]").forEach(b=>b.onclick=async()=>{
+    const k=b.dataset.del,d=Object.assign({fotos:[]},V.nc[k]);
+    d.fotos=(d.fotos||[]).filter((_,i)=>i!==+b.dataset.n); V.nc[k]=d; await salvar(); etNC(); });
+  app.querySelectorAll("[data-d]").forEach(b=>b.onclick=async()=>{
+    const k=b.dataset.d; V.nc[k]=Object.assign({},V.nc[k],{destino:b.dataset.val}); await salvar(); etNC(); });
+  app.querySelectorAll("[data-rec]").forEach(t=>t.oninput=()=>{
+    const k=t.dataset.rec; V.nc[k]=Object.assign({},V.nc[k],{rec:t.value}); });
+  const pend=ncPendente().length;
+  setDock(`<button class="btn primary" id="go">${pend?`${pend} item(ns) incompleto(s)`:"Continuar"}</button>`);
+  dockIn.querySelector("#go").onclick=async()=>{ await salvar();
+    if(ncPendente().length){ aviso("Cada não conformidade precisa de foto, destino e recomendação."); etNC(); return; }
+    etapa=5; render(); };
+}
+
+function etResumo(){
+  prog(null);
+  const ks=chavesAval(V), ncs=ks.filter(k=>V.m1[k]==="nc");
+  app.innerHTML=`<div class="card">`+ks.map((k,i)=>{
+    const v=V.m1[k]||"",cor=v==="ok"?"var(--ok)":v==="nc"?"var(--nc)":"var(--na)";
+    const rot=v==="ok"?"conforme":v==="nc"?"não conforme":v==="na"?"não se aplica":"não marcado";
+    return `<div class="item" style="padding:10px 13px"><div class="cod">A-${i+1}</div>
+      <div style="display:flex;gap:10px;align-items:center"><div style="flex:1;font-size:15px">${itens("aval")[i]}</div>
+      <b style="color:${cor};font-size:13px;white-space:nowrap">${rot}</b></div></div>`; }).join("")+`</div>
+    <p class="note">Processo padrão: ${itens("proc").length} etapas executadas.${ncs.length?` ${ncs.length} componente(s) não conforme(s), com foto e recomendação. Os valores entram no aditivo da OS.`:" Nenhuma não conformidade."}</p>`;
+  setDock(`<button class="btn primary" id="fim">Concluir válvula</button>`);
+  dockIn.querySelector("#fim").onclick=async()=>{ await salvar(); tela="os"; V=null; render(); };
+}
+
+/* ---------------- aditivo da OS */
+function telaAditivo(){
+  cab("Aditivo da OS","OS "+esc(OS.numero),true); prog(null);
+  back.onclick=async()=>{ await salvar(); tela="os"; render(); };
+  const ad=aditivosOS(OS), T=totaisOS(OS);
+  app.innerHTML=`<p class="note" style="margin:0 0 11px">Só os componentes não conformes recebem valor. A manutenção padrão é fechada por inteiro.</p>`+
+    `<div class="card">`+ad.map(a=>{
+      const p=a.p, id=a.v.id+"|"+a.k;
+      const calc=p.inc?`<div class="calc">
+        <div class="l"><span>Material (R$)</span><input type="number" inputmode="decimal" data-p="${id}" data-f="material" value="${p.material??""}"></div>
+        ${(cfg.taxas||[]).map(t=>`<div class="l"><span>${esc(t.nome)} — horas</span>
+          <input type="number" inputmode="decimal" data-p="${id}" data-f="h:${t.id}" value="${(p.horas||{})[t.id]??""}"></div>`).join("")}
+        <div class="l"><span>Preço ao cliente (R$)</span><input type="number" inputmode="decimal" data-p="${id}" data-f="preco" value="${p.preco??""}"></div>
+        <div class="tot"><span>Custo</span><b>${brl(custoItem(p))}</b></div>
+        <div class="tot"><span>Margem</span><b class="${(Number(p.preco)||0)-custoItem(p)>=0?"mg-ok":"mg-bad"}">${brl((Number(p.preco)||0)-custoItem(p))}</b></div>
+      </div>`:"";
+      return `<div class="prop"><div class="hd"><div class="g">
+        <div style="font-size:11px;color:var(--steel);font-weight:600">Item ${a.v.item} · ${esc(a.v.tag)} · A-${+a.k.split("-")[1]+1}</div>
+        <div style="font-size:15px;margin-top:3px">${a.texto} — ${(a.v.nc[a.k]||{}).destino==="substituicao"?"não recuperável":"recuperação"}</div>
+        ${p.inc?`<input data-p="${id}" data-f="desc" value="${esc(p.desc)}" placeholder="Peça ou serviço na proposta"
+          style="width:100%;margin-top:8px;border:1px solid var(--rule);border-radius:9px;padding:9px;font:inherit;font-size:14.5px">`:""}
+        </div><button class="tg" data-inc="${id}" aria-pressed="${!!p.inc}">${p.inc?"Na proposta":"Incluir"}</button></div>
+        ${calc}</div>`; }).join("")+`</div>
+    <div class="big">
+      <div class="tot"><span>Custo total</span><b>${brl(T.custo)}</b></div>
+      <div class="tot"><span>Preço ao cliente</span><b>${brl(T.preco)}</b></div>
+      <div class="tot"><span>Margem</span><b class="${T.margem>=0?"mg-ok":"mg-bad"}">${brl(T.margem)}${T.preco>0?" · "+T.pct.toFixed(1)+"%":""}</b></div>
+    </div>
+    ${(cfg.taxas||[]).every(t=>!Number(t.valor))?`<div class="warn">As taxas de hora estão zeradas. Preencha na aba Taxas para o custo sair certo.</div>`:""}`;
+
+  const achar=id=>{ const [vid,k]=id.split("|"); const v=OS.valvulas.find(x=>x.id===vid); return {v,k}; };
+  app.querySelectorAll("[data-inc]").forEach(b=>b.onclick=async()=>{
+    const {v,k}=achar(b.dataset.inc); const p=v.prop[k]||{horas:{}};
+    p.inc=!p.inc;
+    if(p.inc&&!p.desc) p.desc=(v.nc[k]&&v.nc[k].rec)?v.nc[k].rec.slice(0,90):textoItem(k,v);
+    v.prop[k]=p; await salvar(); telaAditivo(); });
+  app.querySelectorAll("[data-p]").forEach(i=>i.oninput=()=>{
+    const {v,k}=achar(i.dataset.p), f=i.dataset.f, p=v.prop[k]||{horas:{}};
+    if(f.startsWith("h:")){ p.horas=p.horas||{}; p.horas[f.slice(2)]=i.value; } else p[f]=i.value;
+    v.prop[k]=p;
+    if(f!=="desc"){ clearTimeout(i._t); i._t=setTimeout(async()=>{ await salvar(); telaAditivo(); },700); } });
+
+  setDock(`<button class="btn primary" id="volta">Voltar para a OS</button>
+           <button class="btn ghost" id="pp">Gerar proposta de aditivo</button>`);
+  dockIn.querySelector("#volta").onclick=async()=>{ await salvar(); tela="os"; render(); };
+  dockIn.querySelector("#pp").onclick=async()=>{ await salvar();
+    const inc=aditivosOS(OS).filter(a=>a.p.inc);
+    if(!inc.length){ aviso("Inclua ao menos um item na proposta."); return; }
+    if(inc.some(a=>!(Number(a.p.preco)>0))){ aviso("Preencha o preço ao cliente em todos os itens incluídos."); return; }
+    pdfProposta(); };
+}
+
+/* ---------------- histórico */
+
+let cacheOS=null, ctxGrupo=null, histFiltro="";
+
+async function carregarTodas(){
+  const out=[];
+  for(const m of indice){
+    if(OS && OS.id===m.id){ out.push(OS); continue; }
+    const o=await get("os:"+m.id);
+    if(o) out.push(o);
+  }
+  cacheOS=out; return out;
+}
+
+function linhasHistorico(oss){
+  const linhas=[];
+  oss.forEach(o=>{
+    const cli=(clientes.find(c=>c.id===o.clienteId)||{}).nome||"";
+    (o.valvulas||[]).forEach(v=>{
+      const fab=(fabricantes.find(f=>f.id===v.fabId)||{}).nome||"sem fabricante";
+      const ad=chavesAval(v).filter(k=>v.m1[k]==="nc").map(k=>({k,texto:textoItem(k,v),
+        destino:(v.nc[k]||{}).destino, p:(v.prop||{})[k]||{}}));
+      const preco=ad.filter(a=>a.p.inc).reduce((t,a)=>t+(Number(a.p.preco)||0),0);
+      const custo=ad.filter(a=>a.p.inc).reduce((t,a)=>t+custoItem(a.p),0);
+      linhas.push({os:o.numero, osId:o.id, data:o.data, cliente:cli, v, fab,
+        tipo:v.tipo?TIPOS[v.tipo].nome:"—", modelo:v.modelo||"sem modelo",
+        bitola:v.bitola||"", ad, preco, custo, chave:fab+" · "+(v.modelo||"sem modelo")+" · "+(v.bitola?v.bitola+'"':"sem bitola")});
+    });
+  });
+  return linhas;
+}
+
+function telaHistorico(){
+  cab("Histórico de válvulas","Todas as OS","");
+  prog(null); setDock("",true);
+  app.innerHTML=`<div class="empty">Carregando histórico...</div>`;
+  (async()=>{
+    const oss=await carregarTodas();
+    const todas=linhasHistorico(oss);
+    const q=histFiltro.trim().toLowerCase();
+    const vis=!q?todas:todas.filter(l=>[l.fab,l.modelo,l.tipo,l.cliente,l.os,l.v.tag].join(" ").toLowerCase().includes(q));
+
+    const grupos={};
+    vis.forEach(l=>{ const g=grupos[l.chave]=grupos[l.chave]||{n:0,nc:0,preco:0,custo:0,comp:{},linhas:[]};
+      g.n++; g.linhas.push(l);
+      if(l.ad.length) g.nc++;
+      g.preco+=l.preco; g.custo+=l.custo;
+      l.ad.forEach(a=>{ g.comp[a.texto]=(g.comp[a.texto]||0)+1; }); });
+
+    const totalPreco=vis.reduce((t,l)=>t+l.preco,0);
+    const totalCusto=vis.reduce((t,l)=>t+l.custo,0);
+    const comNC=vis.filter(l=>l.ad.length).length;
+
+    const compGeral={};
+    vis.forEach(l=>l.ad.forEach(a=>{ compGeral[a.texto]=(compGeral[a.texto]||0)+1; }));
+    const ranking=Object.entries(compGeral).sort((a,b)=>b[1]-a[1]).slice(0,6);
+
+    const gs=Object.entries(grupos).sort((a,b)=>b[1].n-a[1].n);
+
+    app.innerHTML=`<label class="f" style="background:#fff;border:1px solid var(--rule);border-radius:12px;margin-bottom:11px">
+        <span>Buscar por fabricante, modelo, tipo, cliente, OS ou TAG</span>
+        <input id="hb" value="${esc(histFiltro)}" placeholder="digite para filtrar"></label>
+      <div class="big" style="margin-top:0">
+        <div class="tot"><span>Válvulas atendidas</span><b>${vis.length}</b></div>
+        <div class="tot"><span>Com não conformidade</span><b>${comNC}${vis.length?" · "+Math.round(comNC/vis.length*100)+"%":""}</b></div>
+        <div class="tot"><span>Aditivos faturados</span><b>${brl(totalPreco)}</b></div>
+        <div class="tot"><span>Margem dos aditivos</span><b class="${totalPreco-totalCusto>=0?"mg-ok":"mg-bad"}">${brl(totalPreco-totalCusto)}</b></div>
+      </div>
+      ${ranking.length?`<h2>Componentes que mais reprovam</h2><div class="card">`+ranking.map(([c,n])=>
+        `<div class="item" style="padding:9px 13px;display:flex;gap:10px;align-items:center">
+          <div style="flex:1;font-size:15px">${esc(c)}</div><b style="color:var(--nc)">${n}</b></div>`).join("")+`</div>`:""}
+      ${gs.length?`<h2>Por fabricante, modelo e bitola</h2><div class="list">`+gs.map(([g,d])=>
+        `<button class="row" data-g="${esc(g)}"><span class="g"><b>${esc(g)}</b>
+          <small>${d.n} válvula${d.n===1?"":"s"} · ${d.nc} com não conformidade · ${brl(d.preco)} em aditivos</small></span>
+          <span class="pill ${d.nc?"p-and":"p-lib"}">${d.n?Math.round(d.nc/d.n*100):0}%</span></button>`).join("")+`</div>`
+        :`<div class="empty">Nenhuma válvula no histórico ainda.</div>`}`;
+
+    const hb=document.getElementById("hb");
+    if(hb) hb.oninput=()=>{ histFiltro=hb.value; const p=hb.selectionStart; telaHistorico();
+      setTimeout(()=>{ const n=document.getElementById("hb"); if(n){n.focus();n.setSelectionRange(p,p);} },30); };
+    app.querySelectorAll("[data-g]").forEach(b=>b.onclick=()=>{ ctxGrupo=b.dataset.g; tela="det"; render(); });
+  })();
+}
+
+function telaHistGrupo(){
+  cab(ctxGrupo||"Grupo","Histórico",true); prog(null); setDock("",true);
+  back.onclick=()=>{ tela="lista"; render(); };
+  app.innerHTML=`<div class="empty">Carregando...</div>`;
+  (async()=>{
+    const oss=cacheOS||await carregarTodas();
+    const linhas=linhasHistorico(oss).filter(l=>l.chave===ctxGrupo);
+    const precos={};
+    linhas.forEach(l=>l.ad.filter(a=>a.p.inc).forEach(a=>{
+      const nome=(a.p.desc||a.texto).trim();
+      const r=precos[nome]=precos[nome]||{n:0,soma:0,min:Infinity,max:0,ultimo:0,data:""};
+      const v=Number(a.p.preco)||0;
+      r.n++; r.soma+=v; r.min=Math.min(r.min,v); r.max=Math.max(r.max,v); r.ultimo=v; r.data=l.data;
+    }));
+    const ps=Object.entries(precos);
+    app.innerHTML=
+      `${ps.length?`<h2>Histórico de preços</h2><div class="card">`+ps.map(([nome,r])=>
+        `<div class="item" style="padding:10px 13px">
+          <div style="font-size:15px;margin-bottom:5px">${esc(nome)}</div>
+          <div class="cod">${r.n}x cobrado · média ${brl(r.soma/r.n)} · menor ${brl(r.min)} · maior ${brl(r.max)}</div>
+          <div class="cod" style="color:var(--ok)">último: ${brl(r.ultimo)} em ${esc(r.data)}</div>
+        </div>`).join("")+`</div>`:`<div class="warn">Nenhum aditivo cobrado neste grupo ainda.</div>`}
+      <h2>Válvulas deste grupo</h2><div class="list">`+linhas.map(l=>
+        `<button class="row" data-os="${l.osId}"><span class="g"><b>OS ${esc(l.os)} · ${esc(l.v.tag)}</b>
+          <small>${esc(l.cliente)} · ${esc(l.data)} · ${l.ad.length?l.ad.length+" não conforme(s)":"conforme"}</small></span>
+          <span class="pill ${l.preco?"p-and":"p-lib"}">${l.preco?brl(l.preco):"—"}</span></button>`).join("")+`</div>`;
+    app.querySelectorAll("[data-os]").forEach(b=>b.onclick=async()=>{
+      if(await abrirOS(b.dataset.os)){ aba="os"; tela="os"; render(); } });
+  })();
+}
+
+/* ---------------- cadastros */
+function cadastro(kind){
+  const arr=kind==="cli"?clientes:fabricantes;
+  if(kind==="fab") arr.sort((a,b)=>a.nome.localeCompare(b.nome,"pt-BR"));
+  cab(kind==="cli"?"Clientes":"Fabricantes",kind==="cli"?"Relatórios por cliente":"Histórico por marca",false);
+  prog(null);
+  const linhas=arr.map(x=>{
+    const n=kind==="cli"?indice.filter(m=>m.clienteId===x.id).length
+      :indice.reduce((a,m)=>a,0);
+    const extra=kind==="cli"?`${n} OS`:(esc([x.municipio,x.uf].filter(Boolean).join("/"))||(x.cnpj?"sem cidade":"sem CNPJ"));
+    return `<div class="row"><span class="g" data-x="${x.id}" style="cursor:pointer"><b>${esc(x.nome)}</b>
+      <small>${esc(x.cnpj)||"sem CNPJ"}</small></span>
+      <span class="pill p-and">${extra}</span>
+      <button data-rm="${x.id}" style="border:0;background:none;color:var(--nc);font-size:20px;cursor:pointer;padding:0 4px">×</button></div>`;
+  }).join("");
+  app.innerHTML=(linhas?`<div class="list">${linhas}</div>`:`<div class="empty">Nenhum cadastro ainda.</div>`)+
+    `<h2>Novo cadastro</h2><div class="card">
+      <label class="f"><span>CNPJ</span><input id="cc" inputmode="numeric" placeholder="00.000.000/0000-00"></label>
+      <label class="f" style="padding:9px 13px"><button class="btn ghost" id="bus" style="padding:11px">Buscar dados pelo CNPJ</button></label>
+      <label class="f"><span>Nome</span><input id="nn" placeholder="${kind==="cli"?"razão social":"marca da válvula"}"></label>
+      <label class="f"><span>Cidade e UF</span><input id="cid" placeholder="opcional"></label>
+    </div><button class="btn ghost" id="add" style="margin-top:10px">Adicionar</button>
+    <p class="note">A consulta preenche razão social, endereço e contato pela Receita. Sem internet, dá para digitar direto.</p>
+    ${kind==="fab"?`<button class="btn ghost" id="compl" style="margin-top:10px">Completar dados pelos CNPJs cadastrados</button>
+      <button class="btn ghost" id="seed" style="margin-top:9px">Repor marcas conhecidas</button>
+      <p class="note">Inclui as marcas de mercado que ainda não estiverem na lista. Nenhuma é duplicada.</p>`:""}`;
+  setDock("",true);
+  let achado=null;
+  document.getElementById("bus").onclick=async()=>{
+    const b=document.getElementById("bus"),t=b.textContent;
+    b.textContent="Consultando..."; b.disabled=true;
+    try{ achado=await consultarCNPJ(document.getElementById("cc").value);
+      document.getElementById("nn").value=achado.nome;
+      document.getElementById("cid").value=[achado.municipio,achado.uf].filter(Boolean).join(" / ");
+      if(achado.situacao&&!/ATIVA/i.test(achado.situacao)) aviso("Atenção: situação cadastral "+achado.situacao+".");
+    }catch(e){ aviso(e.message); }
+    b.textContent=t; b.disabled=false; };
+  document.getElementById("add").onclick=async()=>{
+    const n=document.getElementById("nn").value.trim();
+    if(!n){ aviso("Busque pelo CNPJ ou digite o nome."); return; }
+    const dd=achado||{};
+    arr.unshift({id:uid(kind),nome:n,cnpj:fmtCnpj(document.getElementById("cc").value),
+      fantasia:dd.fantasia||"",endereco:dd.endereco||"",municipio:dd.municipio||"",uf:dd.uf||"",
+      cep:dd.cep||"",telefone:dd.telefone||"",email:dd.email||""});
+    achado=null; await set(kind==="cli"?"clientes":"fabricantes",arr); render(); };
+  const cp=document.getElementById("compl");
+  if(cp) cp.onclick=async()=>{
+    const alvo=fabricantes.filter(f=>soDig(f.cnpj).length===14 && !f.municipio);
+    if(!alvo.length){ aviso("Nenhum fabricante com CNPJ pendente de consulta."); return; }
+    cp.disabled=true; let n=0;
+    for(const f of alvo){
+      cp.textContent="Consultando "+f.nome+"...";
+      try{ const dd=await consultarCNPJ(f.cnpj);
+        Object.assign(f,{fantasia:dd.fantasia||f.fantasia,endereco:dd.endereco||f.endereco,
+          municipio:dd.municipio,uf:dd.uf,cep:dd.cep,telefone:dd.telefone,email:dd.email});
+        n++;
+      }catch(e){}
+    }
+    await set("fabricantes",fabricantes);
+    cp.disabled=false; aviso(n+" de "+alvo.length+" cadastro(s) completado(s)."); render(); };
+  const sd=document.getElementById("seed");
+  if(sd) sd.onclick=async()=>{
+    const tem=fabricantes.map(f=>f.nome.toLowerCase());
+    const novos=FABRICANTES_PADRAO.filter(f=>!tem.includes(f.nome.toLowerCase()));
+    if(!novos.length){ aviso("Todas as marcas conhecidas já estão na lista."); return; }
+    novos.forEach(f=>fabricantes.push(fabDe(f)));
+    fabricantes.sort((a,b)=>a.nome.localeCompare(b.nome,"pt-BR"));
+    await set("fabricantes",fabricantes);
+    aviso(novos.length+" marca(s) incluída(s)."); render(); };
+  app.querySelectorAll("[data-x]").forEach(b=>b.onclick=()=>{
+    if(kind==="cli") ctxCliente=b.dataset.x; else ctxFab=b.dataset.x; tela="det"; render(); });
+  app.querySelectorAll("[data-rm]").forEach(b=>b.onclick=async()=>{
+    const id=b.dataset.rm;
+    const usados=kind==="cli"?indice.filter(m=>m.clienteId===id).length:0;
+    if(usados){ aviso("Não dá para excluir: há "+usados+" OS usando este cadastro."); return; }
+    if(!confirm("Excluir este cadastro?")) return;
+    const novo=arr.filter(x=>x.id!==id);
+    if(kind==="cli") clientes=novo; else fabricantes=novo;
+    await set(kind==="cli"?"clientes":"fabricantes",novo); render(); });
+}
+
+function fichaCard(x){
+  const l=[["CNPJ",x.cnpj],["Nome fantasia",x.fantasia],["Endereço",x.endereco],
+    ["Cidade / UF",[x.municipio,x.uf].filter(Boolean).join(" / ")],["CEP",x.cep],
+    ["Telefone",x.telefone],["E-mail",x.email]].filter(p=>p[1]);
+  if(!l.length) return "";
+  return `<div class="card">`+l.map(p=>`<div class="item" style="padding:8px 13px">
+    <div class="cod">${p[0]}</div><div style="font-size:14.5px">${esc(p[1])}</div></div>`).join("")+`</div>`;
+}
+
+function telaClienteDet(){
+  const c=clientes.find(x=>x.id===ctxCliente)||{};
+  cab(c.nome||"Cliente",c.cnpj||"",true); prog(null);
+  back.onclick=()=>{tela="lista";render();};
+  const ms=indice.filter(m=>m.clienteId===ctxCliente);
+  app.innerHTML=fichaCard(c)+(ms.length?`<h2>Ordens de serviço</h2><div class="list">`+ms.map(m=>{
+      const s=m.situacao||"EM ANDAMENTO",cls=s==="CONCLUÍDA"?"p-lib":"p-and";
+      return `<button class="row" data-o="${m.id}"><span class="g"><b>${esc(m.numero)}</b>
+        <small>${m.qtd||0} válvula${m.qtd===1?"":"s"} · ${esc(m.data||"")}</small></span>
+        <span class="pill ${cls}">${s.toLowerCase()}</span></button>`; }).join("")+`</div>`
+    :`<div class="empty">Nenhuma OS registrada para este cliente.</div>`);
+  setDock("",true);
+  app.querySelectorAll("[data-o]").forEach(b=>b.onclick=async()=>{
+    if(await abrirOS(b.dataset.o)){ aba="os"; tela="os"; render(); } });
+}
+
+function telaFabDet(){
+  const f=fabricantes.find(x=>x.id===ctxFab)||{};
+  cab(f.nome||"Fabricante",f.cnpj||"",true); prog(null);
+  back.onclick=()=>{tela="lista";render();};
+  setDock("",true);
+  app.innerHTML=fichaCard(f)+`<div class="empty">Carregando histórico...</div>`;
+  (async()=>{
+    const oss=cacheOS||await carregarTodas();
+    const grupos={};
+    oss.forEach(o=>(o.valvulas||[]).forEach(v=>{ if(v.fabId!==ctxFab) return;
+      const g=(v.modelo||"sem modelo")+" · "+(v.bitola?v.bitola+'"':"sem bitola");
+      grupos[g]=grupos[g]||{n:0,nc:0}; grupos[g].n++; if(valvulaTemNC(v)) grupos[g].nc++; }));
+    const gs=Object.entries(grupos).sort((a,b)=>b[1].n-a[1].n);
+    app.innerHTML=fichaCard(f)+(gs.length?`<h2>Histórico por modelo e bitola</h2>`+gs.map(([g,d])=>
+      `<div class="card" style="margin-bottom:10px"><div class="item">
+        <div class="txt" style="margin-bottom:4px"><b>${esc(g)}</b></div>
+        <div class="cod">${d.n} válvula${d.n===1?"":"s"} · ${d.nc} com não conformidade</div></div></div>`).join("")
+      :`<div class="empty">Nenhuma válvula desta marca ainda.</div>`);
+  })();
+}
+
+/* ---------------- taxas */
+function telaTaxas(){
+  cab("Taxas de hora","Usadas no cálculo do aditivo",false); prog(null);
+  app.innerHTML=`<div class="card">`+cfg.taxas.map(t=>
+    `<label class="f"><span>${esc(t.nome)} — R$/hora</span>
+      <input type="number" inputmode="decimal" data-t="${t.id}" value="${t.valor||""}" placeholder="0,00"></label>`).join("")+`</div>
+    <h2>Incluir mão de obra ou máquina</h2>
+    <div class="card"><label class="f"><span>Nome</span><input id="tn" placeholder="ex.: Soldador, Torneiro, Prensa"></label>
+    <label class="f"><span>R$/hora</span><input id="tv" type="number" inputmode="decimal" placeholder="0,00"></label></div>
+    <button class="btn ghost" id="addt" style="margin-top:10px">Adicionar</button>
+    <p class="note">Uma peça pode somar horas de várias máquinas no mesmo item do aditivo.</p>
+
+    <h2>Backup dos dados</h2>
+    <div class="warn">Os dados ficam só neste aparelho. Ao trocar de celular, limpar o navegador ou atualizar o app, SEM backup eles se perdem. Faça backup sempre e guarde o arquivo no seu servidor.</div>
+    <p class="note" id="bkstatus"></p>
+    <button class="btn primary" id="expshare" style="margin-top:10px">Backup — compartilhar / enviar arquivo</button>
+    <button class="btn ghost" id="exp" style="margin-top:9px">Backup — baixar arquivo</button>
+    <label class="f" style="background:#fff;border:1px solid var(--rule);border-radius:12px;margin-top:11px">
+      <span>URL do seu servidor (opcional — recebe o backup via POST)</span>
+      <input id="bkurl" placeholder="https://seuservidor.com/backup"></label>
+    <button class="btn ghost" id="expsrv" style="margin-top:9px">Enviar backup pro meu servidor</button>
+    <h2>Restaurar backup</h2>
+    <button class="btn ghost" id="impb">Importar backup</button>
+    <textarea id="bk" style="margin-top:10px;display:none;min-height:120px;font-size:12px" placeholder="cole aqui o backup"></textarea>
+    <button class="btn primary" id="impok" style="margin-top:9px;display:none">Restaurar estes dados</button>
+    <p class="note" id="bkinfo"></p>`;
+  (function(){ const bs=document.getElementById("bkstatus"), bi=bkpInfo();
+    if(bs) bs.textContent=bi.ultimo?("Último backup: "+new Date(bi.ultimo).toLocaleString("pt-BR")+(bi.pend?" · "+bi.pend+" alteração(ões) desde então":" · tudo salvo")):"Nenhum backup feito ainda.";
+    const bkurl=document.getElementById("bkurl");
+    if(bkurl){ bkurl.value=local("bkp:url")||""; bkurl.oninput=()=>local("bkp:url",bkurl.value.trim()); } })();
+  document.getElementById("expshare").onclick=async()=>{ const r=await exportarBackup({compartilhar:true}); if(r&&r.cancelado) return; render(); };
+  document.getElementById("expsrv").onclick=async()=>{ await enviarServidor(); render(); };
+  app.querySelectorAll("[data-t]").forEach(i=>i.oninput=()=>{
+    const t=cfg.taxas.find(x=>x.id===i.dataset.t); if(t) t.valor=i.value;
+    clearTimeout(i._t); i._t=setTimeout(()=>set("cfg",cfg),600); });
+  document.getElementById("addt").onclick=async()=>{
+    const n=document.getElementById("tn").value.trim();
+    if(!n){ aviso("Preencha o nome."); return; }
+    cfg.taxas.push({id:uid("t"),nome:n,valor:document.getElementById("tv").value||0,tipo:"maq"});
+    await set("cfg",cfg); render(); };
+  const bk=document.getElementById("bk"), impok=document.getElementById("impok"), info=document.getElementById("bkinfo");
+  document.getElementById("exp").onclick=async()=>{ await exportarBackup({}); render(); };
+  document.getElementById("impb").onclick=()=>{
+    bk.style.display="block"; bk.value=""; impok.style.display="block";
+    info.textContent="Cole o backup no campo acima e toque em restaurar. Os dados atuais serão substituídos.";
+    bk.focus();
+  };
+  impok.onclick=async()=>{
+    let p; try{ p=JSON.parse(bk.value); }catch(e){ aviso("O texto colado não é um backup válido."); return; }
+    if(!p||!Array.isArray(p.os)||!Array.isArray(p.clientes)){ aviso("Backup incompleto ou de outro formato."); return; }
+    if(!confirm("Restaurar "+p.os.length+" OS e "+p.clientes.length+" clientes? Os dados atuais serão substituídos.")) return;
+    cfg=p.cfg&&p.cfg.taxas?p.cfg:cfg;
+    clientes=p.clientes||[]; fabricantes=p.fabricantes||[];
+    indice=p.os.map(o=>({id:o.id,numero:o.numero,clienteId:o.clienteId,data:o.data,
+      qtd:(o.valvulas||[]).length,situacao:"EM ANDAMENTO",criado:o.criado}));
+    await set("cfg",cfg); await set("clientes",clientes); await set("fabricantes",fabricantes);
+    for(const o of p.os){ await set("os:"+o.id,o); }
+    // recalcula a situação de cada OS
+    const guard=OS;
+    for(const o of p.os){ OS=o; const i=indice.findIndex(x=>x.id===o.id); if(i>=0) indice[i].situacao=situacaoOS(o); }
+    OS=guard;
+    await set("os:index",indice); cacheOS=null;
+    marcarBackupFeito();
+    aviso("Backup restaurado: "+p.os.length+" OS e "+p.clientes.length+" clientes.");
+    render();
+  };
+  setDock("",true);
+}
+
+/* ============================================================ PDF */
+
+function janela(html){
+  document.querySelectorAll(".sheetwrap").forEach(e=>e.remove());
+  const d=document.createElement("div"); d.className="sheetwrap";
+  d.innerHTML=`<div class="sheettop"><button id="shClose">Fechar</button>`+
+    `<button id="shPrint" class="pr">Imprimir ou salvar PDF</button></div><div class="sheet">${html}</div>`;
+  document.body.appendChild(d); document.body.classList.add("printing");
+  d.querySelector("#shClose").onclick=()=>{ d.remove(); document.body.classList.remove("printing"); };
+  d.querySelector("#shPrint").onclick=()=>window.print();
+  window.scrollTo(0,0);
+}
+
+function pdfLaudo(){
+  const c=clientes.find(x=>x.id===OS.clienteId)||{};
+  const mk=v=>v==="ok"?"X":v==="nc"?"NC":v==="na"?"–":"";
+  const s=situacaoOS(OS);
+  const capa=`<h1>NEW VÁLVULAS — LAUDO DE INSPEÇÃO DE MANUTENÇÃO</h1>
+    <table class="id">
+      <tr><td><b>Ordem de serviço</b>${esc(OS.numero)}</td><td><b>Data</b>${esc(OS.data)}</td>
+          <td><b>Válvulas</b>${OS.valvulas.length}</td></tr>
+      <tr><td colspan="2"><b>Cliente</b>${esc(c.nome)}</td><td><b>CNPJ</b>${esc(c.cnpj)}</td></tr>
+      <tr><td colspan="3"><b>Endereço</b>${esc([c.endereco,[c.municipio,c.uf].filter(Boolean).join("/")].filter(Boolean).join(" — "))}</td></tr>
+    </table>
+    <table style="margin-top:8px"><tr class="hd"><th>Item</th><th>TAG</th><th>Válvula</th><th>Fabricante e modelo</th><th>Resultado</th></tr>`+
+    OS.valvulas.map(v=>{ const f=fabricantes.find(x=>x.id===v.fabId)||{};
+      return `<tr><td class="cod">${v.item}</td><td>${esc(v.tag)}</td>
+        <td>${v.tipo?TIPOS[v.tipo].nome:""} ${v.bitola?v.bitola+'"':""}</td>
+        <td>${esc(f.nome)} ${esc(v.modelo)}</td>
+        <td class="mk">${valvulaTemNC(v)?"com não conformidade":"conforme"}</td></tr>`; }).join("")+`</table>
+    <div class="res">${s}</div>
+    <div class="ass"><div><b>${esc(OS.a1)||"&nbsp;"}</b>Responsável pela inspeção · ${esc(OS.d1||OS.data)}</div></div>`;
+
+  const paginas=OS.valvulas.map(v=>{
+    const f=fabricantes.find(x=>x.id===v.fabId)||{};
+    const proc=itens("proc",v).map((t,i)=>`<tr><td class="cod">E-${i+1}</td><td>${t}</td><td class="mk">executado</td></tr>`).join("");
+    const aval=itens("aval",v).map((t,i)=>{const k="aval-"+i;
+      return `<tr><td class="cod">A-${i+1}</td><td>${t}</td><td class="mk">${mk(v.m1[k])}</td></tr>`;}).join("");
+    const ncs=chavesAval(v).filter(k=>v.m1[k]==="nc");
+    const ncTxt=ncs.length?ncs.map(k=>{const d=v.nc[k]||{};
+      return `A-${+k.split("-")[1]+1} ${textoItem(k,v)} — ${d.destino==="substituicao"?"não recuperável":"recuperação"}: ${esc(d.rec)}`;
+    }).join("<br>"):"nenhuma registrada";
+    const ev=ncs.filter(k=>((v.nc[k]||{}).fotos||[]).length).map(k=>{const d=v.nc[k];
+      return `<h3 style="font-size:11px;margin:12px 0 5px">A-${+k.split("-")[1]+1} · ${textoItem(k,v)}</h3>
+        <div class="g">`+d.fotos.map((ft,n)=>`<figure><img src="${ft}"><figcaption>foto ${n+1}</figcaption></figure>`).join("")+`</div>`;
+    }).join("");
+    return `<div class="ev"><h2>Item ${v.item} — ${esc(v.tag)}</h2>
+      <table class="id">
+        <tr><td><b>Tipo</b>${v.tipo?TIPOS[v.tipo].nome:""}</td><td><b>Fabricante</b>${esc(f.nome)}</td>
+            <td><b>Modelo</b>${esc(v.modelo)}</td><td><b>Bitola</b>${v.bitola?v.bitola+'"':""}</td></tr>
+        <tr><td><b>Mecânico</b>${esc(v.montador)}</td><td><b>Pintor</b>${esc(v.pintor)}</td>
+            <td colspan="2"><b>Vídeo do teste</b>${esc(v.video)||"não informado"}</td></tr>
+      </table>
+      <table style="margin-top:8px"><tr class="hd"><th colspan="2">Item verificado</th><th style="width:78px">Resultado</th></tr>
+        <tr><th colspan="3" class="sec">Processo padrão executado</th></tr>${proc}
+        <tr><th colspan="3" class="sec">Avaliação dos componentes</th></tr>${aval}</table>
+      <div class="box"><b>Não conformidades e recomendação</b>${ncTxt}</div>
+      ${ev}</div>`;
+  }).join("");
+
+  janela(capa+paginas+`<p style="font-size:8px;color:#555;margin-top:10px">X = conforme · NC = não conforme · – = não aplicável.</p>`);
+}
+
+function pdfProposta(){
+  const c=clientes.find(x=>x.id===OS.clienteId)||{};
+  const inc=aditivosOS(OS).filter(a=>a.p.inc);
+  const T=totaisOS(OS);
+  const linhas=inc.map((a,n)=>`<tr><td class="cod">${n+1}</td>
+    <td>${esc(a.p.desc)||a.texto}<br><span style="font-size:9px;color:#555">Item ${a.v.item} · TAG ${esc(a.v.tag)} · ${a.texto} não conforme</span></td>
+    <td style="text-align:right;white-space:nowrap">${brl(a.p.preco)}</td></tr>`).join("");
+  janela(`<h1>NEW VÁLVULAS — PROPOSTA DE ADITIVO</h1>
+    <table class="id">
+      <tr><td><b>Cliente</b>${esc(c.nome)}</td><td><b>CNPJ</b>${esc(c.cnpj)}</td><td><b>Ordem de serviço</b>${esc(OS.numero)}</td></tr>
+      <tr><td colspan="2"><b>Endereço</b>${esc([c.endereco,[c.municipio,c.uf].filter(Boolean).join("/")].filter(Boolean).join(" — "))}</td>
+          <td><b>Contato</b>${esc(c.telefone||c.email||"")}</td></tr>
+    </table>
+    <table style="margin-top:8px"><tr class="hd"><th colspan="2">Serviço ou peça</th><th style="width:96px">Valor</th></tr>${linhas}
+      <tr><td colspan="2" style="text-align:right;font-weight:bold">Total</td>
+          <td style="text-align:right;font-weight:bold">${brl(T.preco)}</td></tr></table>
+    <div class="box"><b>Observação</b>Valores referentes somente aos componentes não conformes encontrados na inspeção das válvulas desta OS, adicionais à manutenção padrão contratada. Prazo e condições a combinar.</div>
+    <div class="ass"><div><b>&nbsp;</b>New Válvulas · ${esc(OS.data)}</div><div><b>&nbsp;</b>Aceite do cliente</div></div>`);
+}
+
+/* ============================================================ NUVEM (Supabase) */
+const SB_URL="https://xexkalwcsbwtklkctgze.supabase.co";
+const SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhleGthbHdjc2J3dGtsa2N0Z3plIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc3ODExMjQsImV4cCI6MjEwMzM1NzEyNH0.BtyUjToVMDyqB0AlcJ2dUTh9Gv18OVPAkcSEMAJaZBE";
+const SB_TABLE="inspecao_valvulas";
+const SB_ID="principal";
+const SB_HEAD={apikey:SB_KEY,Authorization:"Bearer "+SB_KEY,"Content-Type":"application/json"};
+
+let aplicandoNuvem=false, syncLiberado=false, syncPend=false, syncTimer=null;
+
+function marcaSync(estado){
+  const el=document.getElementById("syncStatus"); if(!el) return;
+  const map={carregando:["busy","sincronizando…"],enviando:["busy","salvando…"],ok:["ok","✓ na nuvem"],
+    pendente:["busy","• pendente"],offline:["off","offline"],erro:["err","erro — tentando"]};
+  const [cls,txt]=map[estado]||["off","•"];
+  el.className="syncst "+cls; el.textContent=txt;
+}
+async function nuvemCarregar(){
+  const r=await fetch(`${SB_URL}/rest/v1/${SB_TABLE}?id=eq.${SB_ID}&select=dados,atualizado_em`,{headers:SB_HEAD});
+  if(!r.ok) throw new Error("HTTP "+r.status);
+  const arr=await r.json(); return (arr&&arr[0])||null;
+}
+async function nuvemSalvar(){
+  const {pacote}=await gerarPacote();
+  const dados={cfg:pacote.cfg,clientes:pacote.clientes,fabricantes:pacote.fabricantes,os:pacote.os};
+  const body=[{id:SB_ID,dados,atualizado_em:new Date().toISOString()}];
+  const r=await fetch(`${SB_URL}/rest/v1/${SB_TABLE}`,{method:"POST",
+    headers:{...SB_HEAD,Prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify(body)});
+  if(!r.ok) throw new Error("HTTP "+r.status);
+}
+async function localOSs(){ const out=[]; for(const m of indice){ const o=await get("os:"+m.id); if(o) out.push(o); } return out; }
+async function aplicarNuvem(dados){
+  // offline-first: nunca perde dado — por OS mantém a versão mais nova (por 'atualizado'); cadastros por união de id
+  aplicandoNuvem=true;
+  try{
+    const locais=await localOSs(), porId={};
+    locais.forEach(o=>porId[o.id]=o);
+    (dados.os||[]).forEach(o=>{ const l=porId[o.id];
+      if(!l || String(o.atualizado||"")>String(l.atualizado||"")) porId[o.id]=o; });
+    const osFinal=Object.values(porId);
+    indice=[];
+    for(const o of osFinal){ await set("os:"+o.id,o);
+      indice.push({id:o.id,numero:o.numero,clienteId:o.clienteId,data:o.data,
+        qtd:(o.valvulas||[]).length,situacao:situacaoOS(o),criado:o.criado}); }
+    indice.sort((a,b)=>String(b.criado||"").localeCompare(String(a.criado||"")));
+    await set("os:index",indice);
+    const uniao=(loc,nuv)=>{ const ids=new Set((loc||[]).map(x=>x.id)); const r=(loc||[]).slice();
+      (nuv||[]).forEach(x=>{ if(!ids.has(x.id)) r.push(x); }); return r; };
+    clientes=uniao(clientes,dados.clientes); await set("clientes",clientes);
+    fabricantes=uniao(fabricantes,dados.fabricantes); await set("fabricantes",fabricantes);
+    if(dados.cfg&&dados.cfg.taxas&&dados.cfg.taxas.length){ cfg=dados.cfg; await set("cfg",cfg); }
+    cacheOS=null;
+  } finally { aplicandoNuvem=false; }
+}
+function agendarSync(){
+  if(aplicandoNuvem || !syncLiberado) return;
+  syncPend=true; marcaSync("pendente");
+  clearTimeout(syncTimer); syncTimer=setTimeout(sincronizar,900);
+}
+async function sincronizar(){
+  if(!syncPend) return;
+  if(!navigator.onLine){ marcaSync("offline"); return; }
+  marcaSync("enviando");
+  try{ await nuvemSalvar(); syncPend=false; marcaSync("ok"); }
+  catch(e){ marcaSync(navigator.onLine?"erro":"offline"); }
+}
+async function iniciarNuvem(){
+  marcaSync("carregando");
+  try{
+    const row=await nuvemCarregar();
+    if(row&&row.dados) await aplicarNuvem(row.dados);
+    syncLiberado=true;
+    if(navigator.onLine){ marcaSync("enviando"); await nuvemSalvar(); marcaSync("ok"); }
+    else marcaSync("offline");
+    render();
+  }catch(e){ syncLiberado=true; marcaSync(navigator.onLine?"erro":"offline"); }
+}
+async function aoVoltarFoco(){
+  if(!syncLiberado) return iniciarNuvem();
+  if(!navigator.onLine){ marcaSync("offline"); return; }
+  if(syncPend){ await sincronizar(); return; }
+  try{ marcaSync("carregando"); const row=await nuvemCarregar();
+    if(row&&row.dados){ await aplicarNuvem(row.dados); render(); } marcaSync("ok");
+  }catch(e){ marcaSync("erro"); }
+}
+window.addEventListener("online",()=>{ if(syncPend) sincronizar(); else if(syncLiberado) aoVoltarFoco(); });
+window.addEventListener("offline",()=>marcaSync("offline"));
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden) aoVoltarFoco(); });
+
+/* ============================================================ INIT */
+back.onclick=()=>{ tela="lista"; OS=null; V=null; render(); };
+boot().then(()=>{ render(); iniciarNuvem(); });
+
+</script>
+</body>
+</html>
