@@ -660,7 +660,7 @@ function telaOS(){
 /* ---------------- etapas da válvula */
 function telaEtapa(){
   const c=ETAPAS[etapa];
-  cab(c==="tipo"?"Tipo de válvula":c==="dados"?"Dados da válvula":c==="proc"?"Processo padrão executado":
+  cab(c==="tipo"?"Tipo de válvula":c==="dados"?"Dados da válvula":c==="proc"?"Processo padrão a executar":
       c==="aval"?"Avaliação dos componentes":c==="nc"?"Não conformidades":"Resumo da válvula",
       `OS ${esc(OS.numero)} · item ${V.item}`,true);
   back.onclick=async()=>{ await salvar(); if(etapa>0){etapa--;render();} else {tela="os";V=null;render();} };
@@ -741,9 +741,9 @@ function etDados(){
 
 function etProc(){
   autoProc(); prog(1);
-  app.innerHTML=`<p class="note" style="margin:0 0 11px">Procedimento padrão da New Equipamentos. Toda válvula passa por todas estas etapas, então elas entram no laudo já como executadas.</p>
+  app.innerHTML=`<p class="note" style="margin:0 0 11px">Procedimento padrão da New Equipamentos. Toda válvula passa por todas estas etapas, então elas entram no laudo já como a executar.</p>
     <div class="card">`+itens("proc").map((t,i)=>
-      `<div class="item"><div class="cod">E-${i+1} · executado</div><div class="txt">${t}</div></div>`).join("")+`</div>`;
+      `<div class="item"><div class="cod">E-${i+1} · a executar</div><div class="txt">${t}</div></div>`).join("")+`</div>`;
   setDock(`<button class="btn primary" id="go">Continuar</button>`);
   dockIn.querySelector("#go").onclick=async()=>{ await salvar(); etapa=3; render(); };
 }
@@ -825,7 +825,7 @@ function etResumo(){
     return `<div class="item" style="padding:10px 13px"><div class="cod">A-${i+1}</div>
       <div style="display:flex;gap:10px;align-items:center"><div style="flex:1;font-size:15px">${itens("aval")[i]}</div>
       <b style="color:${cor};font-size:13px;white-space:nowrap">${rot}</b></div></div>`; }).join("")+`</div>
-    <p class="note">Processo padrão: ${itens("proc").length} etapas executadas.${ncs.length?` ${ncs.length} componente(s) não conforme(s), com foto e recomendação. Os valores entram no aditivo da OS.`:" Nenhuma não conformidade."}</p>`;
+    <p class="note">Processo padrão: ${itens("proc").length} etapas a executar.${ncs.length?` ${ncs.length} componente(s) não conforme(s), com foto e recomendação. Os valores entram no aditivo da OS.`:" Nenhuma não conformidade."}</p>`;
   setDock(`<button class="btn primary" id="fim">Concluir válvula</button>`);
   dockIn.querySelector("#fim").onclick=async()=>{ await salvar(); tela="os"; V=null; render(); };
 }
@@ -1228,7 +1228,7 @@ function pdfLaudo(){
 
   const paginas=OS.valvulas.map(v=>{
     const f=fabricantes.find(x=>x.id===v.fabId)||{};
-    const proc=itens("proc",v).map((t,i)=>`<tr><td class="cod">E-${i+1}</td><td>${t}</td><td class="mk">executado</td></tr>`).join("");
+    const proc=itens("proc",v).map((t,i)=>`<tr><td class="cod">E-${i+1}</td><td>${t}</td><td class="mk">a executar</td></tr>`).join("");
     const aval=itens("aval",v).map((t,i)=>{const k="aval-"+i;
       return `<tr><td class="cod">A-${i+1}</td><td>${t}</td><td class="mk">${mk(v.m1[k])}</td></tr>`;}).join("");
     const ncs=chavesAval(v).filter(k=>v.m1[k]==="nc");
@@ -1247,7 +1247,7 @@ function pdfLaudo(){
             <td colspan="2"><b>Vídeo do teste</b>${esc(v.video)||"não informado"}</td></tr>
       </table>
       <table style="margin-top:8px"><tr class="hd"><th colspan="2">Item verificado</th><th style="width:78px">Resultado</th></tr>
-        <tr><th colspan="3" class="sec">Processo padrão executado</th></tr>${proc}
+        <tr><th colspan="3" class="sec">Processo padrão a executar</th></tr>${proc}
         <tr><th colspan="3" class="sec">Avaliação dos componentes</th></tr>${aval}</table>
       <div class="box"><b>Não conformidades e recomendação</b>${ncTxt}</div>
       ${ev}</div>`;
