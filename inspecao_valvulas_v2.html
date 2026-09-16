@@ -826,7 +826,9 @@ function etResumo(){
     return `<div class="item" style="padding:10px 13px"><div class="cod">A-${i+1}</div>
       <div style="display:flex;gap:10px;align-items:center"><div style="flex:1;font-size:15px">${itens("aval")[i]}</div>
       <b style="color:${cor};font-size:13px;white-space:nowrap">${rot}</b></div></div>`; }).join("")+`</div>
-    <p class="note">Processo padrão: ${itens("proc").length} etapas a executar.${ncs.length?` ${ncs.length} componente(s) não conforme(s), com foto e recomendação. Os valores entram no aditivo da OS.`:" Nenhuma não conformidade."}</p>`;
+    <p class="note">Processo padrão: ${itens("proc").length} etapas a executar.${ncs.length?` ${ncs.length} componente(s) não conforme(s), com foto e recomendação. Os valores entram no aditivo da OS.`:" Nenhuma não conformidade."}</p><div class="card" style="margin-top:10px"><h4 style="margin:0 0 8px">Fotos da válvula</h4><div class="foto">${(V.fotos||[]).map((f,n)=>`<span style="position:relative;display:inline-block"><img src="${f}" alt=""><button data-delvf="${n}" style="position:absolute;top:-6px;right:-6px;width:22px;height:22px;min-height:0;border-radius:50%;padding:0;font-size:13px;line-height:1;background:var(--nc);color:#fff;border:0;flex:none">×</button></span>`).join("")}${(V.fotos||[]).length<6?`<button data-addvf="1">Adicionar foto (${(V.fotos||[]).length}/6)</button>`:""}</div><p class="note" style="margin:6px 0 0">Essas fotos entram no laudo mesmo com a válvula conforme.</p></div>`;
+  app.querySelectorAll("[data-addvf]").forEach(b=>b.onclick=()=>{ tirarFoto(async img=>{ V.fotos=(V.fotos||[]).concat([img]).slice(0,6); await salvar(); etResumo(); }); });
+  app.querySelectorAll("[data-delvf]").forEach(b=>b.onclick=async()=>{ V.fotos=(V.fotos||[]).filter((_,i)=>i!==+b.dataset.delvf); await salvar(); etResumo(); });
   setDock(`<button class="btn primary" id="fim">Concluir válvula</button>`);
   dockIn.querySelector("#fim").onclick=async()=>{ await salvar(); tela="os"; V=null; render(); };
 }
@@ -1230,7 +1232,8 @@ function pdfLaudo(){
 
   const paginas=OS.valvulas.map(v=>{
     const f=fabricantes.find(x=>x.id===v.fabId)||{};
-    if(v.condenada){ return `<div class="ev"><h2>Item ${v.item} — ${esc(v.tag)}</h2><table class="id"><tr><td><b>Tipo</b>${v.tipo?TIPOS[v.tipo].nome:""}</td><td><b>Fabricante</b>${esc(f.nome)}</td><td><b>Modelo</b>${esc(v.modelo)}</td><td><b>Bitola</b>${v.bitola?v.bitola+String.fromCharCode(34):""}</td></tr></table><div class="box" style="border:2px solid #b00020;background:#fbeaea;margin-top:10px"><b style="color:#b00020">VÁLVULA CONDENADA</b> ${esc(v.condenadaMotivo)||"Válvula considerada inviável para recuperação. Não foi desmontada nem submetida ao processo de manutenção."}</div></div>`; }
+    const evG=((v.fotos||[]).length)?`<h3 style="font-size:11px;margin:12px 0 5px">Fotos da válvula</h3><div class="g">`+(v.fotos||[]).map((ft,n)=>`<figure><img src="${ft}"><figcaption>foto ${n+1}</figcaption></figure>`).join("")+`</div>`:"";
+    if(v.condenada){ return `<div class="ev"><h2>Item ${v.item} — ${esc(v.tag)}</h2><table class="id"><tr><td><b>Tipo</b>${v.tipo?TIPOS[v.tipo].nome:""}</td><td><b>Fabricante</b>${esc(f.nome)}</td><td><b>Modelo</b>${esc(v.modelo)}</td><td><b>Bitola</b>${v.bitola?v.bitola+String.fromCharCode(34):""}</td></tr></table><div class="box" style="border:2px solid #b00020;background:#fbeaea;margin-top:10px"><b style="color:#b00020">VÁLVULA CONDENADA</b> ${esc(v.condenadaMotivo)||"Válvula considerada inviável para recuperação. Não foi desmontada nem submetida ao processo de manutenção."}</div>${evG}</div>`; }
     const proc=itens("proc",v).map((t,i)=>`<tr><td class="cod">E-${i+1}</td><td>${t}</td><td class="mk">a executar</td></tr>`).join("");
     const aval=itens("aval",v).map((t,i)=>{const k="aval-"+i;
       return `<tr><td class="cod">A-${i+1}</td><td>${t}</td><td class="mk">${mk(v.m1[k])}</td></tr>`;}).join("");
@@ -1253,7 +1256,7 @@ function pdfLaudo(){
         <tr><th colspan="3" class="sec">Processo padrão a executar</th></tr>${proc}
         <tr><th colspan="3" class="sec">Avaliação dos componentes</th></tr>${aval}</table>
       <div class="box"><b>Não conformidades e recomendação</b>${ncTxt}</div>
-      ${ev}</div>`;
+      ${ev}${evG}</div>`;
   }).join("");
 
   janela(capa+paginas+`<p style="font-size:8px;color:#555;margin-top:10px">X = conforme · NC = não conforme · – = não aplicável.</p>`);
