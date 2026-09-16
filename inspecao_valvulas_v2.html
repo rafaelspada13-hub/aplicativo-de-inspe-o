@@ -548,8 +548,7 @@ function telaOS(){
   prog(null);
   back.onclick=async()=>{ if(OS.numero&&OS.clienteId) await salvar(); tela="lista"; OS=null; render(); };
 
-  const optC=`<option value="">— selecionar —</option>`+clientes.map(c=>`<option value="${c.id}" ${OS.clienteId===c.id?"selected":""}>${esc(c.nome)}</option>`).join("")
-    +`<option value="__novo">+ cadastrar novo cliente</option>`;
+  const cliNome=(OS.clienteId&&(clientes.find(c=>c.id===OS.clienteId)||{}).nome)||"";const optC=[...clientes].sort((a,b)=>(a.nome||"").localeCompare(b.nome||"","pt")).map(c=>`<option value="${esc(c.nome)}"></option>`).join("");
 
   const vals=OS.valvulas.map((v,i)=>{
     const ok=valvulaCompleta(v), nc=valvulaTemNC(v);
@@ -569,7 +568,8 @@ function telaOS(){
         <label class="f"><span>Número da OS *</span><input id="osnum" value="${esc(OS.numero)}" placeholder="OS-1042"></label>
         <label class="f"><span>Data de abertura</span><input value="${esc(OS.data)}" disabled style="color:var(--steel)"></label>
       </div>
-      <label class="f"><span>Cliente *</span><select id="oscli">${optC}</select></label>
+      <label class="f"><span>Cliente *</span><input id="oscli" list="dlCli" autocomplete="off" placeholder="digite para buscar o cliente…" value="${esc(cliNome)}"><datalist id="dlCli">${optC}</datalist></label>
+      <button type="button" class="btn ghost" id="oscliNovo" style="margin:2px 0 8px;padding:8px 12px;font-size:13px">+ cadastrar novo cliente</button>
       <div id="novoCli" style="display:none">
         <label class="f"><span>CNPJ do cliente</span><input id="ncCnpj" inputmode="numeric" placeholder="00.000.000/0000-00"></label>
         <label class="f" style="padding:9px 13px"><button class="btn ghost" id="ncBuscar" style="padding:11px">Buscar dados pelo CNPJ</button></label>
@@ -601,9 +601,8 @@ function telaOS(){
   document.getElementById("osa1").oninput=e=>OS.a1=e.target.value;
   document.getElementById("osd1").oninput=e=>OS.d1=e.target.value;
   const sc=document.getElementById("oscli");
-  sc.onchange=()=>{ if(sc.value==="__novo"){ sc.value=OS.clienteId||"";
-      const b=document.getElementById("novoCli"); b.style.display="block"; b.scrollIntoView({block:"center"}); return; }
-    OS.clienteId=sc.value; };
+  sc.oninput=()=>{ const v=sc.value.trim().toLowerCase(); const hit=clientes.find(c=>(c.nome||"").toLowerCase()===v); OS.clienteId=hit?hit.id:""; };
+  const scN=document.getElementById("oscliNovo"); if(scN) scN.onclick=()=>{ const b=document.getElementById("novoCli"); b.style.display="block"; b.scrollIntoView({block:"center"}); };
 
   const buscar=async()=>{ const b=document.getElementById("ncBuscar"),t=b.textContent;
     b.textContent="Consultando..."; b.disabled=true;
@@ -684,17 +683,19 @@ function etTipo(){
 
 function etDados(){
   prog(null);
-  const optF=`<option value="">— selecionar —</option>`+fabricantes.map(f=>`<option value="${f.id}" ${V.fabId===f.id?"selected":""}>${esc(f.nome)}</option>`).join("")
-    +`<option value="__novo">+ cadastrar</option>`;
+  const fabNome=(V.fabId&&(fabricantes.find(f=>f.id===V.fabId)||{}).nome)||"";const optF=[...fabricantes].sort((a,b)=>(a.nome||"").localeCompare(b.nome||"","pt")).map(f=>`<option value="${esc(f.nome)}"></option>`).join("");
   const optB=`<option value="">— selecionar —</option>`+BITOLAS.map(b=>`<option value="${b}" ${String(V.bitola)===String(b)?"selected":""}>${b}"</option>`).join("");
   const optM=v=>`<option value="">— selecionar —</option>`+MECANICOS.map(n=>`<option value="${esc(n)}" ${v===n?"selected":""}>${esc(n)}</option>`).join("");
   const f=(k,r,p)=>`<label class="f"><span>${r}</span><input data-k="${k}" value="${esc(V[k])}" placeholder="${p||""}"></label>`;
   app.innerHTML=`<div class="card">
       ${f("tag","TAG ou nº de série *")}
+      <label class="f" style="flex-direction:row;align-items:center;gap:10px;background:#fbeaea;border:1px solid #e3b0b0;border-radius:10px"><input type="checkbox" id="vCond" ${V.condenada?"checked":""} style="width:20px;height:20px;flex:0 0 auto;margin:0"><span style="color:#b00020;font-weight:bold">Condenar válvula (não desmontar)</span></label>
+      <label class="f" id="vCondMotWrap" style="display:${V.condenada?'block':'none'}"><span>Motivo da condenação</span><input data-k="condenadaMotivo" value="${esc(V.condenadaMotivo)}" placeholder="Ex.: válvula importada sem reposição de peças, inviável recuperar"></label>
       <div class="r2">
-        <label class="f"><span>Fabricante</span><select data-s="fabId">${optF}</select></label>
+        <label class="f"><span>Fabricante</span><input class="fabBusca" list="dlFab" autocomplete="off" placeholder="digite para buscar…" value="${esc(fabNome)}"><datalist id="dlFab">${optF}</datalist></label>
         <label class="f"><span>Bitola</span><select data-s="bitola">${optB}</select></label>
       </div>
+      <button type="button" class="btn ghost" id="fabNovo" style="margin:2px 0 8px;padding:8px 12px;font-size:13px">+ cadastrar fabricante</button>
       <div id="novoFab" style="display:none">
         <label class="f"><span>CNPJ do fabricante</span><input id="nfCnpj" inputmode="numeric" placeholder="00.000.000/0000-00"></label>
         <label class="f" style="padding:9px 13px"><button class="btn ghost" id="nfBuscar" style="padding:11px">Buscar dados pelo CNPJ</button></label>
@@ -714,6 +715,7 @@ function etDados(){
     if(i.dataset.s==="fabId"&&i.value==="__novo"){ i.value=V.fabId||"";
       const b=document.getElementById("novoFab"); b.style.display="block"; b.scrollIntoView({block:"center"}); return; }
     V[i.dataset.s]=i.value; });
+  {const fb=app.querySelector(".fabBusca"); if(fb){ fb.oninput=()=>{ const v=fb.value.trim().toLowerCase(); const hit=fabricantes.find(f=>(f.nome||"").toLowerCase()===v); V.fabId=hit?hit.id:""; }; } const fn=document.getElementById("fabNovo"); if(fn) fn.onclick=()=>{ const b=document.getElementById("novoFab"); b.style.display="block"; b.scrollIntoView({block:"center"}); }; const vc=document.getElementById("vCond"); if(vc) vc.onchange=()=>{ V.condenada=vc.checked; const w=document.getElementById("vCondMotWrap"); if(w) w.style.display=vc.checked?"block":"none"; };}
   document.getElementById("nfBuscar").onclick=async()=>{
     const b=document.getElementById("nfBuscar"),t=b.textContent;
     b.textContent="Consultando..."; b.disabled=true;
@@ -1220,12 +1222,13 @@ function pdfLaudo(){
       return `<tr><td class="cod">${v.item}</td><td>${esc(v.tag)}</td>
         <td>${v.tipo?TIPOS[v.tipo].nome:""} ${v.bitola?v.bitola+'"':""}</td>
         <td>${esc(f.nome)} ${esc(v.modelo)}</td>
-        <td class="mk">${valvulaTemNC(v)?"com não conformidade":"conforme"}</td></tr>`; }).join("")+`</table>
+        <td class="mk">${v.condenada?"CONDENADA":(valvulaTemNC(v)?"com não conformidade":"conforme")}</td></tr>`; }).join("")+`</table>
     <div class="res">${s}</div>
     <div class="ass"><div><b>${esc(OS.a1)||"&nbsp;"}</b>Responsável pela inspeção · ${esc(OS.d1||OS.data)}</div></div>`;
 
   const paginas=OS.valvulas.map(v=>{
     const f=fabricantes.find(x=>x.id===v.fabId)||{};
+    if(v.condenada){ return `<div class="ev"><h2>Item ${v.item} — ${esc(v.tag)}</h2><table class="id"><tr><td><b>Tipo</b>${v.tipo?TIPOS[v.tipo].nome:""}</td><td><b>Fabricante</b>${esc(f.nome)}</td><td><b>Modelo</b>${esc(v.modelo)}</td><td><b>Bitola</b>${v.bitola?v.bitola+String.fromCharCode(34):""}</td></tr></table><div class="box" style="border:2px solid #b00020;background:#fbeaea;margin-top:10px"><b style="color:#b00020">VÁLVULA CONDENADA</b> ${esc(v.condenadaMotivo)||"Válvula considerada inviável para recuperação. Não foi desmontada nem submetida ao processo de manutenção."}</div></div>`; }
     const proc=itens("proc",v).map((t,i)=>`<tr><td class="cod">E-${i+1}</td><td>${t}</td><td class="mk">a executar</td></tr>`).join("");
     const aval=itens("aval",v).map((t,i)=>{const k="aval-"+i;
       return `<tr><td class="cod">A-${i+1}</td><td>${t}</td><td class="mk">${mk(v.m1[k])}</td></tr>`;}).join("");
