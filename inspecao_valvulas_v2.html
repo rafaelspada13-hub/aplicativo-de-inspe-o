@@ -410,6 +410,7 @@ async function boot(){
     await set("fabricantes",fabricantes);
   }
   indice=await get("os:index")||[];
+  TOMB=_tnorm(await get("tombs"));
   await semearSeed();
   await dedupeFab();
 }
@@ -423,7 +424,7 @@ async function salvar(){
   await set("os:"+OS.id,OS); await set("os:index",indice); cacheOS=null;
 }
 async function abrirOS(id){ const d=await get("os:"+id); if(d){ OS=d; return true; } return false; }
-async function apagarOS(id){ indice=indice.filter(x=>x.id!==id);
+async function apagarOS(id){ await tombstone("os",id); indice=indice.filter(x=>x.id!==id);
   await set("os:index",indice); await set("os:"+id,null); local("os:"+id,null); }
 
 /* ---- CNPJ */
@@ -1075,6 +1076,7 @@ function cadastro(kind){
     if(!confirm("Excluir este cadastro?")) return;
     const novo=arr.filter(x=>x.id!==id);
     if(kind==="cli") clientes=novo; else fabricantes=novo;
+    await tombstone(kind==="cli"?"cli":"fab",id);
     await set(kind==="cli"?"clientes":"fabricantes",novo); render(); });
 }
 
@@ -1285,6 +1287,10 @@ const SB_ID="principal";
 const SB_HEAD={apikey:SB_KEY,Authorization:"Bearer "+SB_KEY,"Content-Type":"application/json"};
 
 let aplicandoNuvem=false, syncLiberado=false, syncPend=false, syncTimer=null;
+let TOMB={os:{},cli:{},fab:{}};
+function _tnorm(x){ if(!x||typeof x!=="object") return {os:{},cli:{},fab:{}}; return {os:x.os||{},cli:x.cli||{},fab:x.fab||{}}; }
+function mergeTomb(a,b){ a=_tnorm(a); b=_tnorm(b); const out={os:{},cli:{},fab:{}}; for(const g of ["os","cli","fab"]){ const m=Object.assign({},a[g]); const bg=b[g]; for(const id in bg){ if(!m[id]||String(bg[id])>String(m[id])) m[id]=bg[id]; } out[g]=m; } return out; }
+async function tombstone(grupo,id){ TOMB=_tnorm(TOMB); TOMB[grupo][id]=new Date().toISOString(); await set("tombs",TOMB); }
 
 function marcaSync(estado){
   const el=document.getElementById("syncStatus"); if(!el) return;
@@ -1300,7 +1306,7 @@ async function nuvemCarregar(){
 }
 async function nuvemSalvar(){
   const {pacote}=await gerarPacote();
-  const dados={cfg:pacote.cfg,clientes:pacote.clientes,fabricantes:pacote.fabricantes,os:pacote.os};
+  const dados={cfg:pacote.cfg,clientes:pacote.clientes,fabricantes:pacote.fabricantes,os:pacote.os,del:TOMB};
   const body=[{id:SB_ID,dados,atualizado_em:new Date().toISOString()}];
   const r=await fetch(`${SB_URL}/rest/v1/${SB_TABLE}`,{method:"POST",
     headers:{...SB_HEAD,Prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify(body)});
@@ -1311,10 +1317,14 @@ async function aplicarNuvem(dados){
   // offline-first: nunca perde dado — por OS mantém a versão mais nova (por 'atualizado'); cadastros por união de id
   aplicandoNuvem=true;
   try{
+    TOMB=mergeTomb(TOMB,dados.del); await set("tombs",TOMB);
     const locais=await localOSs(), porId={};
     locais.forEach(o=>porId[o.id]=o);
     (dados.os||[]).forEach(o=>{ const l=porId[o.id];
       if(!l || String(o.atualizado||"")>String(l.atualizado||"")) porId[o.id]=o; });
+    for(const id in porId){ const tv=TOMB.os[id]; if(tv && String(tv)>=String(porId[id].atualizado||"")) delete porId[id]; }
+    const vivos=new Set(Object.keys(porId));
+    for(const o of locais){ if(!vivos.has(o.id)){ await set("os:"+o.id,null); local("os:"+o.id,null); } }
     const osFinal=Object.values(porId);
     indice=[];
     for(const o of osFinal){ await set("os:"+o.id,o);
@@ -1324,8 +1334,8 @@ async function aplicarNuvem(dados){
     await set("os:index",indice);
     const uniao=(loc,nuv)=>{ const ids=new Set((loc||[]).map(x=>x.id)); const r=(loc||[]).slice();
       (nuv||[]).forEach(x=>{ if(!ids.has(x.id)) r.push(x); }); return r; };
-    clientes=uniao(clientes,dados.clientes); await set("clientes",clientes);
-    fabricantes=uniao(fabricantes,dados.fabricantes); await set("fabricantes",fabricantes); await dedupeFab();
+    clientes=uniao(clientes,dados.clientes).filter(x=>!TOMB.cli[x.id]); await set("clientes",clientes);
+    fabricantes=uniao(fabricantes,dados.fabricantes).filter(x=>!TOMB.fab[x.id]); await set("fabricantes",fabricantes); await dedupeFab();
     if(dados.cfg&&dados.cfg.taxas&&dados.cfg.taxas.length){ cfg=dados.cfg; await set("cfg",cfg); }
     cacheOS=null;
   } finally { aplicandoNuvem=false; }
