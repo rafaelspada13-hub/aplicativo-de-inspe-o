@@ -1210,7 +1210,7 @@ function pdfLaudo(){
   const c=clientes.find(x=>x.id===OS.clienteId)||{};
   const mk=v=>v==="ok"?"X":v==="nc"?"NC":v==="na"?"–":"";
   const s=situacaoOS(OS);
-  const capa=`<h1>NEW VÁLVULAS — LAUDO DE INSPEÇÃO DE MANUTENÇÃO</h1>
+  const capa=`<div style='display:flex;align-items:center;gap:14px;border-bottom:3px solid #00452e;padding-bottom:8px;margin-bottom:12px'><img src='logo.png' style='height:64px;width:auto'><div style='flex:1;text-align:right'><div style='font-size:18px;font-weight:bold;color:#00452e;letter-spacing:.5px'>NEW VÁLVULAS</div><div style='font-size:12.5px;color:#333;font-weight:bold'>LAUDO DE INSPEÇÃO DE MANUTENÇÃO</div></div></div>
     <table class="id">
       <tr><td><b>Ordem de serviço</b>${esc(OS.numero)}</td><td><b>Data</b>${esc(OS.data)}</td>
           <td><b>Válvulas</b>${OS.valvulas.length}</td></tr>
@@ -1263,7 +1263,7 @@ function pdfProposta(){
   const linhas=inc.map((a,n)=>`<tr><td class="cod">${n+1}</td>
     <td>${esc(a.p.desc)||a.texto}<br><span style="font-size:9px;color:#555">Item ${a.v.item} · TAG ${esc(a.v.tag)} · ${a.texto} não conforme</span></td>
     <td style="text-align:right;white-space:nowrap">${brl(a.p.preco)}</td></tr>`).join("");
-  janela(`<h1>NEW VÁLVULAS — PROPOSTA DE ADITIVO</h1>
+  janela(`<div style='display:flex;align-items:center;gap:14px;border-bottom:3px solid #00452e;padding-bottom:8px;margin-bottom:12px'><img src='logo.png' style='height:64px;width:auto'><div style='flex:1;text-align:right'><div style='font-size:18px;font-weight:bold;color:#00452e;letter-spacing:.5px'>NEW VÁLVULAS</div><div style='font-size:12.5px;color:#333;font-weight:bold'>PROPOSTA DE ADITIVO</div></div></div>
     <table class="id">
       <tr><td><b>Cliente</b>${esc(c.nome)}</td><td><b>CNPJ</b>${esc(c.cnpj)}</td><td><b>Ordem de serviço</b>${esc(OS.numero)}</td></tr>
       <tr><td colspan="2"><b>Endereço</b>${esc([c.endereco,[c.municipio,c.uf].filter(Boolean).join("/")].filter(Boolean).join(" — "))}</td>
