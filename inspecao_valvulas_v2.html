@@ -41,12 +41,13 @@ input:focus,select:focus,textarea:focus{outline:2px solid #00452e;outline-offset
 .item:last-child{border-bottom:0}
 .item .cod{font-size:11px;color:var(--steel);font-weight:600;letter-spacing:.3px}
 .item .txt{font-size:15.5px;margin:2px 0 9px;line-height:1.3}
-.marks{display:grid;grid-template-columns:2fr 1.4fr 1fr;gap:7px}
+.marks{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .mk{border:1.5px solid var(--rule);background:#fff;border-radius:10px;padding:12px 4px;font:inherit;font-size:13.5px;
     font-weight:650;color:var(--steel);cursor:pointer;min-height:48px}
 .mk[data-v="ok"][aria-pressed="true"]{background:var(--okbg);border-color:var(--ok);color:var(--ok)}
 .mk[data-v="nc"][aria-pressed="true"]{background:var(--ncbg);border-color:var(--nc);color:var(--nc)}
 .mk[data-v="na"][aria-pressed="true"]{background:var(--nabg);border-color:var(--na);color:var(--na)}
+.mk[data-v="falta"][aria-pressed="true"]{background:var(--amberbg);border-color:var(--amber);color:var(--amber)}
 .ncbox{margin-top:10px;border:1.5px solid var(--nc);background:var(--ncbg);border-radius:11px;padding:11px}
 .ncbox h4{margin:0 0 8px;font-size:12px;color:var(--nc);font-weight:700}
 .foto{display:flex;gap:9px;align-items:center;margin-bottom:9px}
@@ -163,7 +164,7 @@ const BITOLAS=[2,3,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,36];
 const MECANICOS=["André Galo","Almir Bruno","Marcos Júnior","Hudson Sanches","William Tilápia"];
 
 const PROC_BORBOLETA=["Desmontagem","Limpeza mecânica e desengraxe","Jateamento abrasivo",
-  "Ensaio de líquido penetrante (LP)","Substituição dos fixadores","Substituição das gaxetas",
+  "Ensaio de líquido penetrante (LP)","Substituição dos fixadores e anel trava","Substituição das gaxetas",
   "Substituição da sede","Montagem","Teste hidrostático","Teste funcional","Pintura padrão New Equipamentos"];
 
 const TIPOS={
@@ -173,7 +174,7 @@ const TIPOS={
     aval:["Corpo","Disco","Haste","Anel de vedação","Caixa redutora","Pinos","Buchas"]},
   globo_man:{nome:"Globo manual",desc:"Haste roscada e volante",prov:true,
     proc:["Desmontagem","Limpeza mecânica e desengraxe","Jateamento abrasivo","Ensaio de líquido penetrante (LP)",
-      "Lapidação ou substituição de sede e tampão","Substituição das gaxetas","Substituição dos fixadores",
+      "Lapidação ou substituição de sede e tampão","Substituição das gaxetas","Substituição dos fixadores e anel trava",
       "Montagem","Teste hidrostático","Teste funcional","Pintura padrão New Equipamentos"],
     aval:["Corpo","Tampão","Sede","Haste","Castelo","Volante","Gaxeta"]},
   globo_aut:{nome:"Globo automática",desc:"Atuador e posicionador",prov:true,
@@ -182,11 +183,11 @@ const TIPOS={
       "Teste hidrostático","Calibração de curso e posicionador","Teste funcional","Pintura padrão New Equipamentos"],
     aval:["Corpo","Tampão","Sede","Gaiola","Haste","Atuador","Posicionador"]},
   gaveta:{nome:"Gaveta",desc:"Cunha e haste ascendente",
-    proc:["Desmontagem completa da válvula","Limpeza mecânica e desengraxe","Ensaio LP em corpo, tampa e haste (NBR 15827)","Lapidação da sede","Troca de fixadores (parafusos, porcas, arruelas)","Troca da gaxeta do prensa-gaxeta","Troca das juntas","Teste hidrostático/pneumático conforme API 598","Teste funcional de abertura/fechamento","Jateamento abrasivo","Pintura industrial"],
+    proc:["Desmontagem completa da válvula","Limpeza mecânica e desengraxe","Ensaio LP em corpo, tampa e haste (NBR 15827)","Lapidação da sede","Troca de fixadores (parafusos, porcas, arruelas) e anel trava","Troca da gaxeta do prensa-gaxeta","Troca das juntas","Teste hidrostático/pneumático conforme API 598","Teste funcional de abertura/fechamento","Jateamento abrasivo","Pintura industrial"],
     aval:["Corpo","Obturador","Haste","Preme","Volante","Porca do fuso"]},
   esfera:{nome:"Esfera",desc:"Assentos e vedação de haste",prov:true,
     proc:["Desmontagem","Limpeza mecânica e desengraxe","Jateamento abrasivo","Ensaio de líquido penetrante (LP)",
-      "Substituição dos assentos","Substituição da vedação da haste","Substituição dos fixadores",
+      "Substituição dos assentos","Substituição da vedação da haste","Substituição dos fixadores e anel trava",
       "Montagem","Teste hidrostático","Teste funcional","Pintura padrão New Equipamentos"],
     aval:["Corpo","Esfera","Assentos","Haste","Vedação da haste","Alavanca ou atuador","Fixadores"]}
 };
@@ -759,6 +760,7 @@ function etAval(){
         <button class="mk" data-k="${k}" data-v="ok" aria-pressed="${v==="ok"}">Conforme</button>
         <button class="mk" data-k="${k}" data-v="nc" aria-pressed="${v==="nc"}">Não conf.</button>
         <button class="mk" data-k="${k}" data-v="na" aria-pressed="${v==="na"}">N/A</button>
+        <button class="mk" data-k="${k}" data-v="falta" aria-pressed="${v==="falta"}">Faltante</button>
       </div></div>`; }).join("")+`</div>`;
   app.querySelectorAll(".mk").forEach(b=>b.onclick=async()=>{
     const k=b.dataset.k;
@@ -821,8 +823,8 @@ function etResumo(){
   prog(null);
   const ks=chavesAval(V), ncs=ks.filter(k=>V.m1[k]==="nc");
   app.innerHTML=`<div class="card">`+ks.map((k,i)=>{
-    const v=V.m1[k]||"",cor=v==="ok"?"var(--ok)":v==="nc"?"var(--nc)":"var(--na)";
-    const rot=v==="ok"?"conforme":v==="nc"?"não conforme":v==="na"?"não se aplica":"não marcado";
+    const v=V.m1[k]||"",cor=v==="ok"?"var(--ok)":v==="nc"?"var(--nc)":v==="falta"?"var(--amber)":"var(--na)";
+    const rot=v==="ok"?"conforme":v==="nc"?"não conforme":v==="na"?"não se aplica":v==="falta"?"faltante":"não marcado";
     return `<div class="item" style="padding:10px 13px"><div class="cod">A-${i+1}</div>
       <div style="display:flex;gap:10px;align-items:center"><div style="flex:1;font-size:15px">${itens("aval")[i]}</div>
       <b style="color:${cor};font-size:13px;white-space:nowrap">${rot}</b></div></div>`; }).join("")+`</div>
@@ -1212,7 +1214,7 @@ function janela(html){
 
 function pdfLaudo(){
   const c=clientes.find(x=>x.id===OS.clienteId)||{};
-  const mk=v=>v==="ok"?"X":v==="nc"?"NC":v==="na"?"–":"";
+  const mk=v=>v==="ok"?"X":v==="nc"?"NC":v==="na"?"–":v==="falta"?"FALTANTE":"";
   const s=situacaoOS(OS);
   const capa=`<div style='display:flex;align-items:center;gap:14px;border-bottom:3px solid #00452e;padding-bottom:8px;margin-bottom:12px'><img src='logo.png' style='height:64px;width:auto'><div style='flex:1;text-align:right'><div style='font-size:18px;font-weight:bold;color:#00452e;letter-spacing:.5px'>NEW VÁLVULAS</div><div style='font-size:12.5px;color:#333;font-weight:bold'>LAUDO DE INSPEÇÃO DE MANUTENÇÃO</div></div></div>
     <table class="id">
@@ -1259,7 +1261,7 @@ function pdfLaudo(){
       ${ev}${evG}</div>`;
   }).join("");
 
-  janela(capa+paginas+`<p style="font-size:8px;color:#555;margin-top:10px">X = conforme · NC = não conforme · – = não aplicável.</p>`);
+  janela(capa+paginas+`<p style="font-size:8px;color:#555;margin-top:10px">X = conforme · NC = não conforme · – = não aplicável · FALTANTE = item não recebido.</p>`);
 }
 
 function pdfProposta(){
