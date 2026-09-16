@@ -255,7 +255,7 @@ const hoje=()=>new Date().toLocaleDateString("pt-BR");
 const soDig=v=>(v||"").replace(/\D/g,"");
 const fmtCnpj=v=>{const d=soDig(v);return d.length===14?d.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,"$1.$2.$3/$4-$5"):(v||"");};
 
-function fabDe(f){ return {id:uid("fab"),nome:f.nome,cnpj:f.cnpj||"",fantasia:f.razao||"",
+function fabDe(f){ return {id:"fab_"+String(f.nome).toLowerCase().replace(/[^a-z0-9]+/g,""),nome:f.nome,cnpj:f.cnpj||"",fantasia:f.razao||"",
   endereco:f.endereco||"",municipio:f.municipio||"",uf:f.uf||"",cep:f.cep||"",telefone:"",email:""}; }
 
 function novaOS(){ return {id:uid("O"),numero:"",clienteId:"",data:hoje(),criado:new Date().toISOString(),
@@ -368,6 +368,22 @@ async function enviarServidor(){
   }catch(e){ aviso("Não consegui enviar pro servidor (verifique URL, HTTPS e CORS)."); return false; }
 }
 
+async function dedupeFab(){
+  try{
+    const seen={},remap={},out=[];
+    for(const f of fabricantes){ const k=(f.nome||'').trim().toUpperCase();
+      if(!k){out.push(f);continue;}
+      if(seen[k]) remap[f.id]=seen[k].id; else {seen[k]=f;out.push(f);} }
+    if(out.length===fabricantes.length) return;
+    const idx=await get("os:index")||[];
+    for(const m of idx){ const o=await get("os:"+m.id); if(!o) continue; let ch=false;
+      (o.valvulas||[]).forEach(v=>{ if(v.fabId&&remap[v.fabId]){v.fabId=remap[v.fabId];ch=true;} });
+      if(ch){ await set("os:"+o.id,o); } }
+    out.sort((a,b)=>(a.nome||'').localeCompare(b.nome||'','pt-BR'));
+    fabricantes=out; await set("fabricantes",fabricantes);
+  }catch(e){}
+}
+
 async function semearSeed(){
   try{
     if(local("nv:seed634")) return;
@@ -397,6 +413,7 @@ async function boot(){
   }
   indice=await get("os:index")||[];
   await semearSeed();
+  await dedupeFab();
 }
 async function salvar(){
   if(!OS) return;
@@ -1307,7 +1324,7 @@ async function aplicarNuvem(dados){
     const uniao=(loc,nuv)=>{ const ids=new Set((loc||[]).map(x=>x.id)); const r=(loc||[]).slice();
       (nuv||[]).forEach(x=>{ if(!ids.has(x.id)) r.push(x); }); return r; };
     clientes=uniao(clientes,dados.clientes); await set("clientes",clientes);
-    fabricantes=uniao(fabricantes,dados.fabricantes); await set("fabricantes",fabricantes);
+    fabricantes=uniao(fabricantes,dados.fabricantes); await set("fabricantes",fabricantes); await dedupeFab();
     if(dados.cfg&&dados.cfg.taxas&&dados.cfg.taxas.length){ cfg=dados.cfg; await set("cfg",cfg); }
     cacheOS=null;
   } finally { aplicandoNuvem=false; }
