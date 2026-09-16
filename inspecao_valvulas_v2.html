@@ -141,7 +141,7 @@ body.comAbas{padding-bottom:210px}
   @page{size:A4;margin:12mm}
 }
 </style>
-<link rel="apple-touch-icon" href="logo.png"><link rel="icon" type="image/png" href="logo.png"><link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22New%20V%C3%A1lvulas%22%2C%22short_name%22%3A%22New%20V%C3%A1lvulas%22%2C%22start_url%22%3A%22.%22%2C%22scope%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22orientation%22%3A%22portrait%22%2C%22background_color%22%3A%22%23ffffff%22%2C%22theme_color%22%3A%22%232b2b2b%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Frafaelspada13-hub.github.io%2Faplicativo-de-inspe-o%2Flogo.png%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fpng%22%2C%22purpose%22%3A%22any%22%7D%2C%7B%22src%22%3A%22https%3A%2F%2Frafaelspada13-hub.github.io%2Faplicativo-de-inspe-o%2Flogo.png%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fpng%22%2C%22purpose%22%3A%22any%22%7D%5D%7D"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="New Válvulas">
+<link rel="apple-touch-icon" href="logo.png"><link rel="icon" type="image/png" href="logo.png"><link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22New%20V%C3%A1lvulas%22%2C%22short_name%22%3A%22New%20V%C3%A1lvulas%22%2C%22start_url%22%3A%22https%3A%2F%2Frafaelspada13-hub.github.io%2Faplicativo-de-inspe-o%2Finspecao_valvulas_v2.html%22%2C%22scope%22%3A%22https%3A%2F%2Frafaelspada13-hub.github.io%2Faplicativo-de-inspe-o%2F%22%2C%22display%22%3A%22standalone%22%2C%22orientation%22%3A%22portrait%22%2C%22background_color%22%3A%22%23ffffff%22%2C%22theme_color%22%3A%22%232b2b2b%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Frafaelspada13-hub.github.io%2Faplicativo-de-inspe-o%2Flogo.png%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fpng%22%2C%22purpose%22%3A%22any%22%7D%2C%7B%22src%22%3A%22https%3A%2F%2Frafaelspada13-hub.github.io%2Faplicativo-de-inspe-o%2Flogo.png%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fpng%22%2C%22purpose%22%3A%22any%22%7D%5D%7D"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="New Válvulas">
 </head>
 <body>
 
@@ -181,11 +181,9 @@ const TIPOS={
       "Lapidação ou substituição de sede e tampão","Substituição das gaxetas","Revisão do atuador","Montagem",
       "Teste hidrostático","Calibração de curso e posicionador","Teste funcional","Pintura padrão New Equipamentos"],
     aval:["Corpo","Tampão","Sede","Gaiola","Haste","Atuador","Posicionador"]},
-  gaveta:{nome:"Gaveta",desc:"Cunha e haste ascendente",prov:true,
-    proc:["Desmontagem","Limpeza mecânica e desengraxe","Jateamento abrasivo","Ensaio de líquido penetrante (LP)",
-      "Lapidação ou substituição de sedes e cunha","Substituição das gaxetas","Substituição dos fixadores",
-      "Montagem","Teste hidrostático","Teste funcional","Pintura padrão New Equipamentos"],
-    aval:["Corpo","Cunha","Sedes","Haste","Castelo","Volante","Gaxeta"]},
+  gaveta:{nome:"Gaveta",desc:"Cunha e haste ascendente",
+    proc:["Desmontagem completa da válvula","Limpeza mecânica e desengraxe","Ensaio LP em corpo, tampa e haste (NBR 15827)","Lapidação da sede","Troca de fixadores (parafusos, porcas, arruelas)","Troca da gaxeta do prensa-gaxeta","Troca das juntas","Teste hidrostático/pneumático conforme API 598","Teste funcional de abertura/fechamento","Jateamento abrasivo","Pintura industrial"],
+    aval:["Corpo","Obturador","Haste","Preme","Volante","Porca do fuso"]},
   esfera:{nome:"Esfera",desc:"Assentos e vedação de haste",prov:true,
     proc:["Desmontagem","Limpeza mecânica e desengraxe","Jateamento abrasivo","Ensaio de líquido penetrante (LP)",
       "Substituição dos assentos","Substituição da vedação da haste","Substituição dos fixadores",
