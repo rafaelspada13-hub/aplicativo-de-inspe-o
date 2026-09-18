@@ -555,8 +555,8 @@ function telaOS(){
   const vals=OS.valvulas.map((v,i)=>{
     const ok=valvulaCompleta(v), nc=valvulaTemNC(v);
     const fab=(fabricantes.find(f=>f.id===v.fabId)||{}).nome||"";
-    const st=!v.tipo?"sem tipo":ok?(nc?"com não conformidade":"conforme"):"incompleta";
-    const cls=ok?(nc?"p-and":"p-lib"):"p-and";
+    const st=v.condenada?"CONDENADA":!v.tipo?"sem tipo":ok?(nc?"com não conformidade":"conforme"):"incompleta";
+    const cls=v.condenada?"p-rep":ok?(nc?"p-and":"p-lib"):"p-and";
     return `<div class="row"><span class="g" data-v="${v.id}" style="cursor:pointer">
       <b>Item ${v.item} · ${esc(v.tag)||"sem TAG"}</b>
       <small>${v.tipo?TIPOS[v.tipo].nome:"—"} · ${esc(fab)} ${esc(v.modelo)} ${v.bitola?v.bitola+'"':""}</small></span>
@@ -822,13 +822,14 @@ function etNC(){
 function etResumo(){
   prog(null);
   const ks=chavesAval(V), ncs=ks.filter(k=>V.m1[k]==="nc");
-  app.innerHTML=`<div class="card">`+ks.map((k,i)=>{
+  app.innerHTML=(V.condenada?`<div class="card" style="border:2px solid #b00020;background:#fbeaea;padding:12px 14px;margin-bottom:10px"><b style="color:#b00020">VÁLVULA CONDENADA</b></div>`:"")+`<div class="card">`+ks.map((k,i)=>{
+    if(V.condenada && V.m1[k]!=="nc" && V.m1[k]!=="falta") return "";
     const v=V.m1[k]||"",cor=v==="ok"?"var(--ok)":v==="nc"?"var(--nc)":v==="falta"?"var(--amber)":"var(--na)";
     const rot=v==="ok"?"conforme":v==="nc"?"não conforme":v==="na"?"não se aplica":v==="falta"?"faltante":"não marcado";
     return `<div class="item" style="padding:10px 13px"><div class="cod">A-${i+1}</div>
       <div style="display:flex;gap:10px;align-items:center"><div style="flex:1;font-size:15px">${itens("aval")[i]}</div>
       <b style="color:${cor};font-size:13px;white-space:nowrap">${rot}</b></div></div>`; }).join("")+`</div>
-    <p class="note">Processo padrão: ${itens("proc").length} etapas a executar.${ncs.length?` ${ncs.length} componente(s) não conforme(s), com foto e recomendação. Os valores entram no aditivo da OS.`:" Nenhuma não conformidade."}</p><div class="card" style="margin-top:10px"><h4 style="margin:0 0 8px">Fotos da válvula</h4><div class="foto">${(V.fotos||[]).map((f,n)=>`<span style="position:relative;display:inline-block"><img src="${f}" alt=""><button data-delvf="${n}" style="position:absolute;top:-6px;right:-6px;width:22px;height:22px;min-height:0;border-radius:50%;padding:0;font-size:13px;line-height:1;background:var(--nc);color:#fff;border:0;flex:none">×</button></span>`).join("")}${(V.fotos||[]).length<6?`<button data-addvf="1">Adicionar foto (${(V.fotos||[]).length}/6)</button>`:""}</div><p class="note" style="margin:6px 0 0">Essas fotos entram no laudo mesmo com a válvula conforme.</p></div>`;
+    <p class="note">Processo padrão: ${itens("proc").length} etapas a executar.${ncs.length?` ${ncs.length} componente(s) não conforme(s), com foto e recomendação. Os valores entram no aditivo da OS.`:" Nenhuma não conformidade."}</p><div class="card" style="margin-top:10px"><h4 style="margin:0 0 8px">Fotos da válvula</h4><div class="foto">${(V.fotos||[]).map((f,n)=>`<span style="position:relative;display:inline-block"><img src="${f}" alt=""><button data-delvf="${n}" style="position:absolute;top:-6px;right:-6px;width:22px;height:22px;min-height:0;border-radius:50%;padding:0;font-size:13px;line-height:1;background:var(--nc);color:#fff;border:0;flex:none">×</button></span>`).join("")}${(V.fotos||[]).length<6?`<button data-addvf="1">Adicionar foto (${(V.fotos||[]).length}/6)</button>`:""}</div><p class="note" style="margin:6px 0 0">Essas fotos entram no laudo.</p></div>`;
   app.querySelectorAll("[data-addvf]").forEach(b=>b.onclick=()=>{ tirarFoto(async img=>{ V.fotos=(V.fotos||[]).concat([img]).slice(0,6); await salvar(); etResumo(); }); });
   app.querySelectorAll("[data-delvf]").forEach(b=>b.onclick=async()=>{ V.fotos=(V.fotos||[]).filter((_,i)=>i!==+b.dataset.delvf); await salvar(); etResumo(); });
   setDock(`<button class="btn primary" id="fim">Concluir válvula</button>`);
@@ -995,7 +996,7 @@ function telaHistGrupo(){
         </div>`).join("")+`</div>`:`<div class="warn">Nenhum aditivo cobrado neste grupo ainda.</div>`}
       <h2>Válvulas deste grupo</h2><div class="list">`+linhas.map(l=>
         `<button class="row" data-os="${l.osId}"><span class="g"><b>OS ${esc(l.os)} · ${esc(l.v.tag)}</b>
-          <small>${esc(l.cliente)} · ${esc(l.data)} · ${l.ad.length?l.ad.length+" não conforme(s)":"conforme"}</small></span>
+          <small>${esc(l.cliente)} · ${esc(l.data)} · ${l.v.condenada?"condenada":l.ad.length?l.ad.length+" não conforme(s)":"conforme"}</small></span>
           <span class="pill ${l.preco?"p-and":"p-lib"}">${l.preco?brl(l.preco):"—"}</span></button>`).join("")+`</div>`;
     app.querySelectorAll("[data-os]").forEach(b=>b.onclick=async()=>{
       if(await abrirOS(b.dataset.os)){ aba="os"; tela="os"; render(); } });
@@ -1238,6 +1239,7 @@ function pdfLaudo(){
     const condBox=v.condenada?`<div class="box" style="border:2px solid #b00020;background:#fbeaea;margin-top:10px"><b style="color:#b00020">VÁLVULA CONDENADA</b> ${esc(v.condenadaMotivo)||"Válvula considerada inviável para recuperação."}</div>`:"";
     const proc=itens("proc",v).map((t,i)=>`<tr><td class="cod">E-${i+1}</td><td>${t}</td><td class="mk">a executar</td></tr>`).join("");
     const aval=itens("aval",v).map((t,i)=>{const k="aval-"+i;
+      if(v.condenada && v.m1[k]!=="nc" && v.m1[k]!=="falta") return "";
       return `<tr><td class="cod">A-${i+1}</td><td>${t}</td><td class="mk">${mk(v.m1[k])}</td></tr>`;}).join("");
     const ncs=chavesAval(v).filter(k=>v.m1[k]==="nc");
     const ncTxt=ncs.length?ncs.map(k=>{const d=v.nc[k]||{};
@@ -1256,7 +1258,7 @@ function pdfLaudo(){
       </table>${condBox}
       <table style="margin-top:8px"><tr class="hd"><th colspan="2">Item verificado</th><th style="width:78px">Resultado</th></tr>
         ${v.condenada?"":`<tr><th colspan="3" class="sec">Processo padrão a executar</th></tr>${proc}`}
-        <tr><th colspan="3" class="sec">Avaliação dos componentes</th></tr>${aval}</table>
+        ${aval?`<tr><th colspan="3" class="sec">${v.condenada?"Componentes com problema":"Avaliação dos componentes"}</th></tr>${aval}`:""}</table>
       <div class="box"><b>Não conformidades e recomendação</b>${ncTxt}</div>
       ${ev}${evG}</div>`;
   }).join("");
