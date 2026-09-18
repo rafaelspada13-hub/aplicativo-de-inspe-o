@@ -691,7 +691,7 @@ function etDados(){
   const f=(k,r,p)=>`<label class="f"><span>${r}</span><input data-k="${k}" value="${esc(V[k])}" placeholder="${p||""}"></label>`;
   app.innerHTML=`<div class="card">
       ${f("tag","TAG ou nº de série *")}
-      <label class="f" style="flex-direction:row;align-items:center;gap:10px;background:#fbeaea;border:1px solid #e3b0b0;border-radius:10px"><input type="checkbox" id="vCond" ${V.condenada?"checked":""} style="width:20px;height:20px;flex:0 0 auto;margin:0"><span style="color:#b00020;font-weight:bold">Condenar válvula (não desmontar)</span></label>
+      <label class="f" style="flex-direction:row;align-items:center;gap:10px;background:#fbeaea;border:1px solid #e3b0b0;border-radius:10px"><input type="checkbox" id="vCond" ${V.condenada?"checked":""} style="width:20px;height:20px;flex:0 0 auto;margin:0"><span style="color:#b00020;font-weight:bold">Condenar válvula</span></label>
       <label class="f" id="vCondMotWrap" style="display:${V.condenada?'block':'none'}"><span>Motivo da condenação</span><input data-k="condenadaMotivo" value="${esc(V.condenadaMotivo)}" placeholder="Ex.: válvula importada sem reposição de peças, inviável recuperar"></label>
       <div class="r2">
         <label class="f"><span>Fabricante</span><input class="fabBusca" list="dlFab" autocomplete="off" placeholder="digite para buscar…" value="${esc(fabNome)}"><datalist id="dlFab">${optF}</datalist></label>
@@ -1235,7 +1235,7 @@ function pdfLaudo(){
   const paginas=OS.valvulas.map(v=>{
     const f=fabricantes.find(x=>x.id===v.fabId)||{};
     const evG=((v.fotos||[]).length)?`<h3 style="font-size:11px;margin:12px 0 5px">Fotos da válvula</h3><div class="g">`+(v.fotos||[]).map((ft,n)=>`<figure><img src="${ft}"><figcaption>foto ${n+1}</figcaption></figure>`).join("")+`</div>`:"";
-    if(v.condenada){ return `<div class="ev"><h2>Item ${v.item} — ${esc(v.tag)}</h2><table class="id"><tr><td><b>Tipo</b>${v.tipo?TIPOS[v.tipo].nome:""}</td><td><b>Fabricante</b>${esc(f.nome)}</td><td><b>Modelo</b>${esc(v.modelo)}</td><td><b>Bitola</b>${v.bitola?v.bitola+String.fromCharCode(34):""}</td></tr></table><div class="box" style="border:2px solid #b00020;background:#fbeaea;margin-top:10px"><b style="color:#b00020">VÁLVULA CONDENADA</b> ${esc(v.condenadaMotivo)||"Válvula considerada inviável para recuperação. Não foi desmontada nem submetida ao processo de manutenção."}</div>${evG}</div>`; }
+    const condBox=v.condenada?`<div class="box" style="border:2px solid #b00020;background:#fbeaea;margin-top:10px"><b style="color:#b00020">VÁLVULA CONDENADA</b> ${esc(v.condenadaMotivo)||"Válvula considerada inviável para recuperação."}</div>`:"";
     const proc=itens("proc",v).map((t,i)=>`<tr><td class="cod">E-${i+1}</td><td>${t}</td><td class="mk">a executar</td></tr>`).join("");
     const aval=itens("aval",v).map((t,i)=>{const k="aval-"+i;
       return `<tr><td class="cod">A-${i+1}</td><td>${t}</td><td class="mk">${mk(v.m1[k])}</td></tr>`;}).join("");
@@ -1253,9 +1253,9 @@ function pdfLaudo(){
             <td><b>Modelo</b>${esc(v.modelo)}</td><td><b>Bitola</b>${v.bitola?v.bitola+'"':""}</td></tr>
         <tr><td><b>Mecânico</b>${esc(v.montador)}</td><td><b>Pintor</b>${esc(v.pintor)}</td>
             <td colspan="2"><b>Vídeo do teste</b>${esc(v.video)||"não informado"}</td></tr>
-      </table>
+      </table>${condBox}
       <table style="margin-top:8px"><tr class="hd"><th colspan="2">Item verificado</th><th style="width:78px">Resultado</th></tr>
-        <tr><th colspan="3" class="sec">Processo padrão a executar</th></tr>${proc}
+        ${v.condenada?"":`<tr><th colspan="3" class="sec">Processo padrão a executar</th></tr>${proc}`}
         <tr><th colspan="3" class="sec">Avaliação dos componentes</th></tr>${aval}</table>
       <div class="box"><b>Não conformidades e recomendação</b>${ncTxt}</div>
       ${ev}${evG}</div>`;
