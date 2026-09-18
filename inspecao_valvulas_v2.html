@@ -303,21 +303,37 @@ const SEED_DATA={"clientes": [{"id": "climu30wg52fh1m", "nome": "ENERGETICA SERR
 /* ============================================================ STORAGE */
 
 const mem={};
+const IDB=(()=>{ let dbp=null;
+  function db(){ if(!dbp) dbp=new Promise((res,rej)=>{ try{ const r=indexedDB.open("newvalvulas",1);
+      r.onupgradeneeded=()=>r.result.createObjectStore("kv");
+      r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }catch(e){ rej(e); } });
+    return dbp; }
+  async function get(k){ const d=await db(); return new Promise((res,rej)=>{
+    const q=d.transaction("kv").objectStore("kv").get(k); q.onsuccess=()=>res(q.result); q.onerror=()=>rej(q.error); }); }
+  async function put(k,v){ const d=await db(); return new Promise((res,rej)=>{
+    const tx=d.transaction("kv","readwrite"); tx.objectStore("kv").put(v,k);
+    tx.oncomplete=()=>res(true); tx.onerror=()=>rej(tx.error); tx.onabort=()=>rej(tx.error); }); }
+  return {get,put}; })();
+try{ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist(); }catch(e){}
 function local(k,v){ try{ if(v===undefined) return window.localStorage.getItem(k);
   if(v===null){ window.localStorage.removeItem(k); return true; }
   window.localStorage.setItem(k,v); return true; }catch(e){ return v===undefined?null:false; } }
 async function get(k){
   try{ if(window.storage&&window.storage.get){ const r=await window.storage.get(k); if(r) return JSON.parse(r.value); } }catch(e){}
   if(mem[k]!==undefined) return JSON.parse(mem[k]);
+  try{ const t=await IDB.get(k); if(t!==undefined){ mem[k]=t; return JSON.parse(t); } }catch(e){}
   const l=local(k); if(l){ try{ return JSON.parse(l); }catch(e){} }
   return null;
 }
 async function set(k,v){ const t=JSON.stringify(v); mem[k]=t;
-  const okLocal=local(k,t);
+  let okLocal=false;
+  try{ okLocal=await IDB.put(k,t); if(okLocal) local(k,null); }catch(e){ okLocal=false; }
+  if(!okLocal) okLocal=local(k,t);
   let okRemote=false;
   try{ if(window.storage&&window.storage.set){ await window.storage.set(k,t); okRemote=true; } }catch(e){}
   if(!okLocal&&!okRemote){
-    try{ aviso("ATENÇÃO: não deu para salvar neste aparelho — memória cheia. Exporte um backup e libere espaço. Fotos recentes podem NÃO ter sido gravadas."); }catch(e){}
+    try{ aviso("ATENÇÃO: não deu para salvar neste aparelho. Os dados estão indo para a nuvem — NÃO feche o app até aparecer ✓ na nuvem, e exporte um backup."); }catch(e){}
+    if(!aplicandoNuvem && ehDado(k)) agendarSync();
     return false;
   }
   if(!aplicandoNuvem){ marcarPendente(k); if(ehDado(k)) agendarSync(); }
@@ -391,7 +407,7 @@ async function semearSeed(){
     addU(clientes,SEED_DATA.clientes); await set("clientes",clientes);
     addU(fabricantes,SEED_DATA.fabricantes); await set("fabricantes",fabricantes);
     if((!cfg.taxas||!cfg.taxas.length) && SEED_DATA.cfg && SEED_DATA.cfg.taxas){ cfg=SEED_DATA.cfg; await set("cfg",cfg); }
-    for(const o of (SEED_DATA.os||[])){
+    for(const o of []){ // OS de exemplo não é mais semeada (vinha uma versão antiga da OS 634)
       if(indice.some(m=>m.id===o.id)) continue;
       await set("os:"+o.id,o);
       indice.unshift({id:o.id,numero:o.numero,clienteId:o.clienteId,data:o.data,qtd:(o.valvulas||[]).length,situacao:situacaoOS(o),criado:o.criado});
@@ -417,7 +433,7 @@ async function boot(){
 }
 async function salvar(){
   if(!OS) return;
-  if(!aplicandoNuvem) OS.atualizado=new Date().toISOString();
+  if(!aplicandoNuvem){ OS.atualizado=new Date().toISOString(); if(V && OS.valvulas.includes(V)) V.atualizado=OS.atualizado; }
   const meta={id:OS.id,numero:OS.numero,clienteId:OS.clienteId,data:OS.data,
     qtd:OS.valvulas.length,situacao:situacaoOS(OS),criado:OS.criado};
   const i=indice.findIndex(x=>x.id===OS.id);
@@ -636,6 +652,7 @@ function telaOS(){
     V=OS.valvulas.find(x=>x.id===b.dataset.v); tela="etapa"; etapa=V.tipo?1:0; render(); });
   app.querySelectorAll("[data-rmv]").forEach(b=>b.onclick=async()=>{
     if(!confirm("Excluir esta válvula da OS, com as fotos dela?")) return;
+    OS.valvDel=OS.valvDel||{}; OS.valvDel[b.dataset.rmv]=new Date().toISOString();
     OS.valvulas=OS.valvulas.filter(x=>x.id!==b.dataset.rmv);
     OS.valvulas.forEach((v,i)=>v.item=i+1);
     await salvar(); telaOS(); });
@@ -1153,7 +1170,9 @@ function telaTaxas(){
       <input id="bkurl" placeholder="https://seuservidor.com/backup"></label>
     <button class="btn ghost" id="expsrv" style="margin-top:9px">Enviar backup pro meu servidor</button>
     <h2>Restaurar backup</h2>
-    <button class="btn ghost" id="impb">Importar backup</button>
+    <button class="btn primary" id="impf">Restaurar backup de arquivo (.json)</button>
+    <input type="file" id="impfile" accept=".json,application/json" style="display:none">
+    <button class="btn ghost" id="impb" style="margin-top:9px">Importar backup (colar texto)</button>
     <textarea id="bk" style="margin-top:10px;display:none;min-height:120px;font-size:12px" placeholder="cole aqui o backup"></textarea>
     <button class="btn primary" id="impok" style="margin-top:9px;display:none">Restaurar estes dados</button>
     <p class="note" id="bkinfo"></p>`;
@@ -1178,6 +1197,10 @@ function telaTaxas(){
     info.textContent="Cole o backup no campo acima e toque em restaurar. Os dados atuais serão substituídos.";
     bk.focus();
   };
+  const fin=document.getElementById("impfile");
+  document.getElementById("impf").onclick=()=>{ fin.value=""; fin.click(); };
+  fin.onchange=()=>{ const f=fin.files[0]; if(!f) return; const fr=new FileReader();
+    fr.onload=()=>{ bk.value=fr.result; impok.onclick(); }; fr.readAsText(f); };
   impok.onclick=async()=>{
     let p; try{ p=JSON.parse(bk.value); }catch(e){ aviso("O texto colado não é um backup válido."); return; }
     if(!p||!Array.isArray(p.os)||!Array.isArray(p.clientes)){ aviso("Backup incompleto ou de outro formato."); return; }
@@ -1187,10 +1210,11 @@ function telaTaxas(){
     indice=p.os.map(o=>({id:o.id,numero:o.numero,clienteId:o.clienteId,data:o.data,
       qtd:(o.valvulas||[]).length,situacao:"EM ANDAMENTO",criado:o.criado}));
     await set("cfg",cfg); await set("clientes",clientes); await set("fabricantes",fabricantes);
-    for(const o of p.os){ await set("os:"+o.id,o); }
+    for(let i=0;i<p.os.length;i++){ const o=p.os[i]; const atual=await get("os:"+o.id);
+      const m=atual?mesclarOS(atual,o):o; m.atualizado=new Date().toISOString(); p.os[i]=m; await set("os:"+o.id,m); }
     // recalcula a situação de cada OS
     const guard=OS;
-    for(const o of p.os){ OS=o; const i=indice.findIndex(x=>x.id===o.id); if(i>=0) indice[i].situacao=situacaoOS(o); }
+    for(const o of p.os){ OS=o; const i=indice.findIndex(x=>x.id===o.id); if(i>=0){ indice[i].situacao=situacaoOS(o); indice[i].qtd=(o.valvulas||[]).length; } }
     OS=guard;
     await set("os:index",indice); cacheOS=null;
     marcarBackupFeito();
@@ -1311,7 +1335,8 @@ async function nuvemCarregar(){
   if(!r.ok) throw new Error("HTTP "+r.status);
   const arr=await r.json(); return (arr&&arr[0])||null;
 }
-async function nuvemSalvar(){
+async function nuvemSalvar(jaPuxou){
+  if(!jaPuxou){ const row=await nuvemCarregar(); if(row&&row.dados) await aplicarNuvem(row.dados); }
   const {pacote}=await gerarPacote();
   const dados={cfg:pacote.cfg,clientes:pacote.clientes,fabricantes:pacote.fabricantes,os:pacote.os,del:TOMB};
   const body=[{id:SB_ID,dados,atualizado_em:new Date().toISOString()}];
@@ -1320,6 +1345,21 @@ async function nuvemSalvar(){
   if(!r.ok) throw new Error("HTTP "+r.status);
 }
 async function localOSs(){ const out=[]; for(const m of indice){ const o=await get("os:"+m.id); if(o) out.push(o); } return out; }
+function mesclarOS(a,b){
+  // junta duas versões da mesma OS sem perder válvula: união por id, cada válvula fica com a versão mais nova
+  const nova=String(b.atualizado||"")>String(a.atualizado||"")?b:a, velha=nova===a?b:a;
+  const del=Object.assign({},velha.valvDel||{});
+  for(const id in (nova.valvDel||{})){ if(!del[id]||String(nova.valvDel[id])>String(del[id])) del[id]=nova.valvDel[id]; }
+  const porV={};
+  (velha.valvulas||[]).forEach(v=>porV[v.id]=v);
+  (nova.valvulas||[]).forEach(v=>{ const o=porV[v.id]; if(!o||String(v.atualizado||"")>=String(o.atualizado||"")) porV[v.id]=v; });
+  let vs=Object.values(porV).filter(v=>!(del[v.id]&&String(del[v.id])>=String(v.atualizado||"")));
+  vs.sort((x,y)=>(x.item||0)-(y.item||0)||String(x.id).localeCompare(String(y.id)));
+  const itens=vs.map(v=>v.item); if(new Set(itens).size!==itens.length) vs.forEach((v,i)=>v.item=i+1);
+  const out=Object.assign({},nova,{valvulas:vs,valvDel:del});
+  out.atualizado=String(a.atualizado||"")>String(b.atualizado||"")?a.atualizado:b.atualizado;
+  return out;
+}
 async function aplicarNuvem(dados){
   // offline-first: nunca perde dado — por OS mantém a versão mais nova (por 'atualizado'); cadastros por união de id
   aplicandoNuvem=true;
@@ -1327,8 +1367,11 @@ async function aplicarNuvem(dados){
     TOMB=mergeTomb(TOMB,dados.del); await set("tombs",TOMB);
     const locais=await localOSs(), porId={};
     locais.forEach(o=>porId[o.id]=o);
-    (dados.os||[]).forEach(o=>{ const l=porId[o.id];
-      if(!l || String(o.atualizado||"")>String(l.atualizado||"")) porId[o.id]=o; });
+    (dados.os||[]).forEach(o=>{ const l=porId[o.id]; porId[o.id]=l?mesclarOS(l,o):o; });
+    // OS aberta na tela: incorpora as válvulas que vieram de outro aparelho, sem trocar a que está sendo editada
+    if(OS && porId[OS.id]){ const m=porId[OS.id];
+      OS.valvulas=m.valvulas.map(x=>{ if(V&&x.id===V.id) return V; return x; });
+      OS.valvDel=m.valvDel; OS.atualizado=m.atualizado; porId[OS.id]=OS; }
     for(const id in porId){ const tv=TOMB.os[id]; if(tv && String(tv)>=String(porId[id].atualizado||"")) delete porId[id]; }
     const vivos=new Set(Object.keys(porId));
     for(const o of locais){ if(!vivos.has(o.id)){ await set("os:"+o.id,null); local("os:"+o.id,null); } }
@@ -1365,7 +1408,7 @@ async function iniciarNuvem(){
     const row=await nuvemCarregar();
     if(row&&row.dados) await aplicarNuvem(row.dados);
     syncLiberado=true;
-    if(navigator.onLine){ marcaSync("enviando"); await nuvemSalvar(); marcaSync("ok"); }
+    if(navigator.onLine){ marcaSync("enviando"); await nuvemSalvar(true); marcaSync("ok"); }
     else marcaSync("offline");
     render();
   }catch(e){ syncLiberado=true; marcaSync(navigator.onLine?"erro":"offline"); }
