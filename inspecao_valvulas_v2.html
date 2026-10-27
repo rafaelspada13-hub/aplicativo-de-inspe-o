@@ -1405,13 +1405,12 @@ async function renovarSessao(){
   if(!sessao||!sessao.refresh_token) return false;
   try{ await sbAuth("refresh_token",{refresh_token:sessao.refresh_token}); return true; }
   catch(e){ if(e.status===400||e.status===401){ sessao=null; local("sb:sessao",null); } return false; } }
-function semLogin(){ if(sessao) return false; marcaSync("login"); return true; }
+function semLogin(){ return false; } // login é opcional enquanto a tabela estiver aberta (ver seguranca_supabase.sql)
 async function sbFetch(url,opt,denovo){
   if(sessao && Date.now()>sessao.exp-60000) await renovarSessao();
-  if(!sessao){ const e=new Error("entre com a conta da empresa"); e.status="login"; throw e; }
-  opt=Object.assign({},opt,{headers:Object.assign({},(opt||{}).headers,{Authorization:"Bearer "+sessao.access_token})});
+  opt=Object.assign({},opt,{headers:Object.assign({},(opt||{}).headers,{Authorization:"Bearer "+(sessao?sessao.access_token:SB_KEY)})});
   const r=await fetch(url,opt);
-  if(r.status===401&&!denovo&&await renovarSessao()) return sbFetch(url,opt,true);
+  if(r.status===401&&!denovo&&sessao&&await renovarSessao()) return sbFetch(url,opt,true);
   if(!r.ok){ let t=""; try{ t=(await r.text()).slice(0,200); }catch(e){} const e=new Error("HTTP "+r.status+" "+t); e.status=r.status; throw e; }
   return r; }
 async function fotosExistentes(hs){ // quais hashes já estão na nuvem
@@ -1554,7 +1553,7 @@ function telaLogin(){
     <h2 style="margin-top:0">Nuvem New Válvulas</h2>
     ${logado?`<p class="note">Conectado como <b>${esc(sessao.email)}</b>. Status: ${esc(document.getElementById("syncStatus").textContent)}${ultimoErro?" · "+esc(ultimoErro):""}</p>
       <button class="btn ghost" id="lgSair" style="margin-top:8px">Sair desta conta</button>`
-    :`<p class="note">Entre com a conta da empresa para sincronizar. Sem entrar, os dados ficam só neste aparelho.</p>
+    :`<p class="note">Status: ${esc(document.getElementById("syncStatus").textContent)}${ultimoErro?" · "+esc(ultimoErro):""}</p><p class="note">Conta da empresa (opcional por enquanto).</p>
       <label class="f"><span>E-mail</span><input id="lgEmail" type="email" autocomplete="username" inputmode="email"></label>
       <label class="f"><span>Senha</span><input id="lgSenha" type="password" autocomplete="current-password"></label>
       <button class="btn primary" id="lgEntrar" style="margin-top:8px">Entrar</button>`}
@@ -1562,8 +1561,8 @@ function telaLogin(){
   document.body.appendChild(d);
   const fechar=()=>d.remove(); d.querySelector("#lgFechar").onclick=fechar;
   const sair=d.querySelector("#lgSair");
-  if(sair) sair.onclick=()=>{ if(!confirm("Sair da conta? Os dados continuam neste aparelho, mas param de sincronizar.")) return;
-    sessao=null; local("sb:sessao",null); syncLiberado=false; marcaSync("login"); fechar(); };
+  if(sair) sair.onclick=()=>{ if(!confirm("Sair da conta? Os dados continuam neste aparelho.")) return;
+    sessao=null; local("sb:sessao",null); fechar(); };
   const ent=d.querySelector("#lgEntrar");
   if(ent) ent.onclick=async()=>{ const em=d.querySelector("#lgEmail").value.trim(), se=d.querySelector("#lgSenha").value;
     if(!em||!se){ aviso("Preencha e-mail e senha."); return; }
