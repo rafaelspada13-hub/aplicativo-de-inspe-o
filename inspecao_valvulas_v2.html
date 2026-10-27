@@ -41,9 +41,9 @@ input:focus,select:focus,textarea:focus{outline:2px solid #00452e;outline-offset
 .item:last-child{border-bottom:0}
 .item .cod{font-size:11px;color:var(--steel);font-weight:600;letter-spacing:.3px}
 .item .txt{font-size:15.5px;margin:2px 0 9px;line-height:1.3}
-.marks{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.mk{border:1.5px solid var(--rule);background:#fff;border-radius:10px;padding:12px 4px;font:inherit;font-size:13.5px;
-    font-weight:650;color:var(--steel);cursor:pointer;min-height:48px}
+.marks{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.mk{border:1.5px solid var(--rule);background:#fff;border-radius:10px;padding:10px 2px;font:inherit;font-size:12.5px;
+    font-weight:650;color:var(--steel);cursor:pointer;min-height:46px;letter-spacing:-.1px}
 .mk[data-v="ok"][aria-pressed="true"]{background:var(--okbg);border-color:var(--ok);color:var(--ok)}
 .mk[data-v="nc"][aria-pressed="true"]{background:var(--ncbg);border-color:var(--nc);color:var(--nc)}
 .mk[data-v="na"][aria-pressed="true"]{background:var(--nabg);border-color:var(--na);color:var(--na)}
@@ -82,7 +82,7 @@ body.comAbas{padding-bottom:210px}
 .row small{color:var(--steel);font-size:12.5px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .list{background:#fff;border:1px solid var(--rule);border-radius:12px;overflow:hidden}
 .pill{font-size:11px;font-weight:700;padding:5px 9px;border-radius:999px;white-space:nowrap}
-.p-lib{background:var(--okbg);color:var(--ok)}.p-rep{background:var(--ncbg);color:var(--nc)}.p-and{background:var(--amberbg);color:var(--amber)}
+.p-lib{background:var(--okbg);color:var(--ok)}.p-rep{background:var(--ncbg);color:var(--nc)}.p-and{background:var(--amberbg);color:var(--amber)}.p-pend{background:var(--nabg);color:var(--na)}
 .syncst{font-size:10.5px;font-weight:700;padding:5px 9px;border-radius:999px;white-space:nowrap;background:rgba(255,255,255,.16);color:#fff}
 .syncst.ok{background:rgba(27,127,75,.95)}.syncst.busy{background:rgba(168,113,26,.95)}.syncst.err{background:rgba(189,43,33,.95)}.syncst.off{background:rgba(255,255,255,.18)}
 .empty{text-align:center;color:var(--steel);padding:38px 20px;font-size:14.5px}
@@ -562,7 +562,7 @@ function telaOSs(){
     return [m.numero,cli].join(" ").toLowerCase().includes(q); });
   const linhas=vis.map(m=>{
     const s=m.situacao||"EM ANDAMENTO";
-    const cls=s==="CONCLUÍDA"?"p-lib":"p-and";
+    const cls=s==="CONCLUÍDA"?"p-lib":s==="COM ADITIVO"?"p-rep":"p-pend";
     const cli=(clientes.find(c=>c.id===m.clienteId)||{}).nome||"sem cliente";
     return `<button class="row" data-o="${m.id}"><span class="g"><b>${esc(m.numero)||"sem número"}</b>
       <small>${esc(cli)} · ${m.qtd||0} válvula${m.qtd===1?"":"s"} · ${esc(m.data||"")}</small></span>
@@ -600,12 +600,12 @@ function telaOS(){
     const ok=valvulaCompleta(v), nc=valvulaTemNC(v);
     const fab=(fabricantes.find(f=>f.id===v.fabId)||{}).nome||"";
     const st=v.condenada?"CONDENADA":!v.tipo?"sem tipo":ok?resultadoValv(v):"incompleta";
-    const cls=v.condenada?"p-rep":ok?(nc?"p-and":"p-lib"):"p-and";
+    const cls=v.condenada?"p-rep":!ok?"p-pend":nc?"p-rep":valvulaTemFalta(v)?"p-and":"p-lib";
     return `<div class="row"><span class="g" data-v="${v.id}" style="cursor:pointer">
       <b>Item ${v.item} · ${esc(v.tag)||"sem TAG"}</b>
       <small>${v.tipo?TIPOS[v.tipo].nome:"—"} · ${esc(fab)} ${esc(v.modelo)} ${v.bitola?v.bitola+'"':""}</small></span>
       <span class="pill ${cls}">${st}</span>
-      <button data-rmv="${v.id}" style="border:0;background:none;color:var(--nc);font-size:20px;cursor:pointer;padding:0 4px">×</button></div>`;
+      <button data-rmv="${v.id}" aria-label="Excluir válvula" style="border:0;background:none;color:var(--na);font-size:17px;cursor:pointer;padding:8px 4px 8px 12px;margin-left:2px">×</button></div>`;
   }).join("");
 
   const ad=aditivosOS(OS), T=totaisOS(OS), s=situacaoOS(OS);
@@ -641,7 +641,8 @@ function telaOS(){
       <label class="f"><span>Nome</span><input id="osa1" value="${esc(OS.a1)}" placeholder="nome"></label>
       <label class="f"><span>Data</span><input id="osd1" value="${esc(OS.d1)}" placeholder="${hoje()}"></label>
     </div></div>
-    <h2>Situação</h2><div class="verdict ${s==="CONCLUÍDA"?"v-lib":"v-pend"}">${s}</div>`;
+    <h2>Situação</h2><div class="verdict ${s==="CONCLUÍDA"?"v-lib":"v-pend"}">${s}</div>
+    <button id="del" style="display:block;margin:28px auto 6px;background:none;border:0;color:var(--nc);font:inherit;font-size:14px;text-decoration:underline;padding:10px;cursor:pointer">Excluir esta OS</button>`;
 
   document.getElementById("osnum").oninput=e=>{ OS.numero=e.target.value; autoSalvar(); };
   document.getElementById("osa1").oninput=e=>{ OS.a1=e.target.value; autoSalvar(); };
@@ -687,8 +688,7 @@ function telaOS(){
   const va=document.getElementById("verad"); if(va) va.onclick=async()=>{ await salvar(); tela="aditivo"; render(); };
 
   setDock(`<button class="btn primary" id="sv">Salvar OS</button>
-           <button class="btn ghost" id="pl">Gerar laudo da OS</button>
-           <button class="btn ghost" id="del" style="color:var(--nc);border-color:var(--nc)">Excluir OS</button>`);
+           <button class="btn ghost" id="pl">Gerar laudo da OS</button>`);
   dockIn.querySelector("#sv").onclick=async()=>{
     if(!OS.numero.trim()||!OS.clienteId){ aviso("Preencha número da OS e cliente."); return; }
     await salvar(); tela="lista"; OS=null; render(); };
@@ -698,7 +698,7 @@ function telaOS(){
     const inc=OS.valvulas.filter(v=>!v.condenada&&!valvulaCompleta(v));
     if(inc.length){ aviso("Laudo bloqueado: item "+inc.map(v=>v.item).join(", ")+" incompleto. Marque todos os componentes e, nas não conformidades, foto, destino e recomendação."); return; }
     await salvar(); pdfLaudo(); };
-  dockIn.querySelector("#del").onclick=async()=>{
+  document.getElementById("del").onclick=async()=>{
     if(!confirm("Excluir esta OS com todas as válvulas e fotos? Não tem como desfazer.")) return;
     await apagarOS(OS.id); tela="lista"; OS=null; render(); };
 }
@@ -708,7 +708,7 @@ function telaEtapa(){
   const c=ETAPAS[etapa];
   cab(c==="tipo"?"Tipo de válvula":c==="dados"?"Dados da válvula":c==="proc"?"Processo padrão a executar":
       c==="aval"?"Avaliação dos componentes":c==="nc"?"Não conformidades":"Resumo da válvula",
-      `OS ${esc(OS.numero)} · item ${V.item}`,true);
+      `OS ${esc(OS.numero)} · item ${V.item} · etapa ${etapa+1} de ${ETAPAS.length}`,true);
   back.onclick=async()=>{ await salvar(); if(etapa>0){etapa--;render();} else {tela="os";V=null;render();} };
   if(c==="tipo") return etTipo();
   if(c==="dados") return etDados();
@@ -738,7 +738,7 @@ function etDados(){
   const f=(k,r,p)=>`<label class="f"><span>${r}</span><input data-k="${k}" value="${esc(V[k])}" placeholder="${p||""}"></label>`;
   app.innerHTML=`<div class="card">
       ${f("tag","TAG ou nº de série *")}
-      <label class="f" style="flex-direction:row;align-items:center;gap:10px;background:#fbeaea;border:1px solid #e3b0b0;border-radius:10px"><input type="checkbox" id="vCond" ${V.condenada?"checked":""} style="width:20px;height:20px;flex:0 0 auto;margin:0"><span style="color:#b00020;font-weight:bold">Condenar válvula</span></label>
+      <label class="f" style="display:flex;flex-direction:row;align-items:center;gap:12px;padding:13px;cursor:pointer;background:#fbeaea;border:1px solid #e3b0b0;border-radius:10px"><input type="checkbox" id="vCond" ${V.condenada?"checked":""} style="width:20px;height:20px;flex:0 0 auto;margin:0"><span style="color:#b00020;font-weight:bold;font-size:15px">Condenar válvula</span></label>
       <label class="f" id="vCondMotWrap" style="display:${V.condenada?'block':'none'}"><span>Motivo da condenação</span><input data-k="condenadaMotivo" value="${esc(V.condenadaMotivo)}" placeholder="Ex.: válvula importada sem reposição de peças, inviável recuperar"></label>
       <div class="r2">
         <label class="f"><span>Fabricante</span><input class="fabBusca" list="dlFab" autocomplete="off" placeholder="digite para buscar…" value="${esc(fabNome)}"><datalist id="dlFab">${optF}</datalist></label>
@@ -1009,7 +1009,7 @@ function telaHistorico(){
       ${gs.length?`<h2>Por fabricante, modelo e bitola</h2><div class="list">`+gs.map(([g,d])=>
         `<button class="row" data-g="${esc(g)}"><span class="g"><b>${esc(g)}</b>
           <small>${d.n} válvula${d.n===1?"":"s"} · ${d.nc} com não conformidade · ${brl(d.preco)} em aditivos</small></span>
-          <span class="pill ${d.nc?"p-and":"p-lib"}">${d.n?Math.round(d.nc/d.n*100):0}%</span></button>`).join("")+`</div>`
+          <span class="pill ${d.nc?"p-rep":"p-lib"}">${d.n?Math.round(d.nc/d.n*100):0}%</span></button>`).join("")+`</div>`
         :`<div class="empty">Nenhuma válvula no histórico ainda.</div>`}`;
 
     const hb=document.getElementById("hb");
@@ -1147,7 +1147,7 @@ function telaClienteDet(){
   back.onclick=()=>{tela="lista";render();};
   const ms=indice.filter(m=>m.clienteId===ctxCliente);
   app.innerHTML=fichaCard(c)+(ms.length?`<h2>Ordens de serviço</h2><div class="list">`+ms.map(m=>{
-      const s=m.situacao||"EM ANDAMENTO",cls=s==="CONCLUÍDA"?"p-lib":"p-and";
+      const s=m.situacao||"EM ANDAMENTO",cls=s==="CONCLUÍDA"?"p-lib":s==="COM ADITIVO"?"p-rep":"p-pend";
       return `<button class="row" data-o="${m.id}"><span class="g"><b>${esc(m.numero)}</b>
         <small>${m.qtd||0} válvula${m.qtd===1?"":"s"} · ${esc(m.data||"")}</small></span>
         <span class="pill ${cls}">${s.toLowerCase()}</span></button>`; }).join("")+`</div>`
