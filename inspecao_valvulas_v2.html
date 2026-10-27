@@ -1323,26 +1323,73 @@ function _tnorm(x){ if(!x||typeof x!=="object") return {os:{},cli:{},fab:{}}; re
 function mergeTomb(a,b){ a=_tnorm(a); b=_tnorm(b); const out={os:{},cli:{},fab:{}}; for(const g of ["os","cli","fab"]){ const m=Object.assign({},a[g]); const bg=b[g]; for(const id in bg){ if(!m[id]||String(bg[id])>String(m[id])) m[id]=bg[id]; } out[g]=m; } return out; }
 async function tombstone(grupo,id){ TOMB=_tnorm(TOMB); TOMB[grupo][id]=new Date().toISOString(); await set("tombs",TOMB); }
 
-function marcaSync(estado){
+let ultimoErro="";
+function marcaSync(estado,e){
   const el=document.getElementById("syncStatus"); if(!el) return;
+  if(e){ ultimoErro=String(e&&e.message||e); try{ console.warn("sync:",ultimoErro); }catch(_){} }
+  el.title=estado==="erro"?ultimoErro:"";
   const map={carregando:["busy","sincronizando…"],enviando:["busy","salvando…"],ok:["ok","✓ na nuvem"],
     pendente:["busy","• pendente"],offline:["off","offline"],erro:["err","erro — tentando"]};
   const [cls,txt]=map[estado]||["off","•"];
-  el.className="syncst "+cls; el.textContent=txt;
+  el.className="syncst "+cls; el.textContent=(estado==="erro"&&e&&e.status)?("erro "+e.status+" — tentando"):txt;
 }
+/* ---- fotos: vão em linhas próprias (id "foto_<hash>"); a linha principal leva só a referência "sbf:<hash>" */
+const FOTO_PFX="sbf:", fotosNaNuvem=new Set();
+async function hashTxt(t){
+  const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(t));
+  return Array.from(new Uint8Array(b)).slice(0,12).map(x=>x.toString(16).padStart(2,"0")).join(""); }
+function trocaStrings(obj,fn){ // percorre o objeto e troca strings conforme fn (retorna nova string ou undefined)
+  if(Array.isArray(obj)){ for(let i=0;i<obj.length;i++){ const v=obj[i];
+      if(typeof v==="string"){ const n=fn(v); if(n!==undefined) obj[i]=n; } else if(v&&typeof v==="object") trocaStrings(v,fn); } }
+  else if(obj&&typeof obj==="object"){ for(const k in obj){ const v=obj[k];
+      if(typeof v==="string"){ const n=fn(v); if(n!==undefined) obj[k]=n; } else if(v&&typeof v==="object") trocaStrings(v,fn); } }
+  return obj; }
+async function sbFetch(url,opt){
+  const r=await fetch(url,opt);
+  if(!r.ok){ let t=""; try{ t=(await r.text()).slice(0,200); }catch(e){} const e=new Error("HTTP "+r.status+" "+t); e.status=r.status; throw e; }
+  return r; }
+async function fotosExistentes(hs){ // quais hashes já estão na nuvem
+  const faltam=hs.filter(h=>!fotosNaNuvem.has(h));
+  for(let i=0;i<faltam.length;i+=40){ const lote=faltam.slice(i,i+40);
+    const r=await sbFetch(`${SB_URL}/rest/v1/${SB_TABLE}?select=id&id=in.(${lote.map(h=>"foto_"+h).join(",")})`,{headers:SB_HEAD});
+    (await r.json()).forEach(x=>fotosNaNuvem.add(String(x.id).slice(5))); } }
+async function desidratar(osList){ // copia das OS com fotos trocadas por referência; sobe as fotos que faltam
+  const copia=JSON.parse(JSON.stringify(osList)), novas={}, todas=[];
+  const strs=[]; trocaStrings(copia,v=>{ if(v.startsWith("data:image")) strs.push(v); return undefined; });
+  const mapa={}; for(const v of strs){ if(!mapa[v]){ const h=await hashTxt(v); mapa[v]=h; todas.push(h); novas[h]=v; } }
+  trocaStrings(copia,v=>mapa[v]?FOTO_PFX+mapa[v]:undefined);
+  await fotosExistentes(todas);
+  for(const h of todas){ if(fotosNaNuvem.has(h)) continue;
+    await sbFetch(`${SB_URL}/rest/v1/${SB_TABLE}`,{method:"POST",
+      headers:{...SB_HEAD,Prefer:"resolution=merge-duplicates,return=minimal"},
+      body:JSON.stringify([{id:"foto_"+h,dados:{img:novas[h]},atualizado_em:new Date().toISOString()}])});
+    fotosNaNuvem.add(h); try{ await IDB.put("ft:"+h,novas[h]); }catch(e){} }
+  return copia; }
+async function hidratar(dados){ // troca referências pelas fotos (cache no aparelho, senão baixa)
+  if(!dados||!dados.os) return dados;
+  const refs=new Set(); trocaStrings(dados.os,v=>{ if(v.startsWith(FOTO_PFX)) refs.add(v.slice(FOTO_PFX.length)); return undefined; });
+  const img={}, faltam=[];
+  for(const h of refs){ let t; try{ t=await IDB.get("ft:"+h); }catch(e){} if(t) img[h]=t; else faltam.push(h); }
+  for(let i=0;i<faltam.length;i+=4){ const lote=faltam.slice(i,i+4);
+    const r=await sbFetch(`${SB_URL}/rest/v1/${SB_TABLE}?select=id,dados&id=in.(${lote.map(h=>"foto_"+h).join(",")})`,{headers:SB_HEAD});
+    for(const x of await r.json()){ const h=String(x.id).slice(5); if(x.dados&&x.dados.img){ img[h]=x.dados.img; fotosNaNuvem.add(h); try{ await IDB.put("ft:"+h,x.dados.img); }catch(e){} } } }
+  refs.forEach(h=>{ if(img[h]) fotosNaNuvem.add(h); });
+  trocaStrings(dados.os,v=>v.startsWith(FOTO_PFX)&&img[v.slice(FOTO_PFX.length)]?img[v.slice(FOTO_PFX.length)]:undefined);
+  return dados; }
 async function nuvemCarregar(){
-  const r=await fetch(`${SB_URL}/rest/v1/${SB_TABLE}?id=eq.${SB_ID}&select=dados,atualizado_em`,{headers:SB_HEAD});
-  if(!r.ok) throw new Error("HTTP "+r.status);
-  const arr=await r.json(); return (arr&&arr[0])||null;
+  const r=await sbFetch(`${SB_URL}/rest/v1/${SB_TABLE}?id=eq.${SB_ID}&select=dados,atualizado_em`,{headers:SB_HEAD});
+  const arr=await r.json(); const row=(arr&&arr[0])||null;
+  if(row&&row.dados) await hidratar(row.dados);
+  return row;
 }
 async function nuvemSalvar(jaPuxou){
   if(!jaPuxou){ const row=await nuvemCarregar(); if(row&&row.dados) await aplicarNuvem(row.dados); }
   const {pacote}=await gerarPacote();
-  const dados={cfg:pacote.cfg,clientes:pacote.clientes,fabricantes:pacote.fabricantes,os:pacote.os,del:TOMB};
+  const osLeve=await desidratar(pacote.os);
+  const dados={cfg:pacote.cfg,clientes:pacote.clientes,fabricantes:pacote.fabricantes,os:osLeve,del:TOMB};
   const body=[{id:SB_ID,dados,atualizado_em:new Date().toISOString()}];
-  const r=await fetch(`${SB_URL}/rest/v1/${SB_TABLE}`,{method:"POST",
+  await sbFetch(`${SB_URL}/rest/v1/${SB_TABLE}`,{method:"POST",
     headers:{...SB_HEAD,Prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify(body)});
-  if(!r.ok) throw new Error("HTTP "+r.status);
 }
 async function localOSs(){ const out=[]; for(const m of indice){ const o=await get("os:"+m.id); if(o) out.push(o); } return out; }
 function mesclarOS(a,b){
@@ -1395,12 +1442,15 @@ function agendarSync(){
   syncPend=true; marcaSync("pendente");
   clearTimeout(syncTimer); syncTimer=setTimeout(sincronizar,900);
 }
+let syncRodando=false;
 async function sincronizar(){
   if(!syncPend) return;
   if(!navigator.onLine){ marcaSync("offline"); return; }
-  marcaSync("enviando");
-  try{ await nuvemSalvar(); syncPend=false; marcaSync("ok"); }
-  catch(e){ marcaSync(navigator.onLine?"erro":"offline"); }
+  if(syncRodando){ clearTimeout(syncTimer); syncTimer=setTimeout(sincronizar,1500); return; }
+  syncRodando=true; marcaSync("enviando");
+  try{ syncPend=false; await nuvemSalvar(); marcaSync(syncPend?"pendente":"ok"); if(syncPend){ clearTimeout(syncTimer); syncTimer=setTimeout(sincronizar,900); } }
+  catch(e){ syncPend=true; marcaSync(navigator.onLine?"erro":"offline",e); clearTimeout(syncTimer); syncTimer=setTimeout(sincronizar,20000); }
+  finally{ syncRodando=false; }
 }
 async function iniciarNuvem(){
   marcaSync("carregando");
@@ -1411,7 +1461,7 @@ async function iniciarNuvem(){
     if(navigator.onLine){ marcaSync("enviando"); await nuvemSalvar(true); marcaSync("ok"); }
     else marcaSync("offline");
     render();
-  }catch(e){ syncLiberado=true; marcaSync(navigator.onLine?"erro":"offline"); }
+  }catch(e){ syncLiberado=true; syncPend=true; marcaSync(navigator.onLine?"erro":"offline",e); clearTimeout(syncTimer); syncTimer=setTimeout(sincronizar,20000); }
 }
 async function aoVoltarFoco(){
   if(!syncLiberado) return iniciarNuvem();
@@ -1419,7 +1469,7 @@ async function aoVoltarFoco(){
   if(syncPend){ await sincronizar(); return; }
   try{ marcaSync("carregando"); const row=await nuvemCarregar();
     if(row&&row.dados){ await aplicarNuvem(row.dados); render(); } marcaSync("ok");
-  }catch(e){ marcaSync("erro"); }
+  }catch(e){ marcaSync("erro",e); }
 }
 window.addEventListener("online",()=>{ if(syncPend) sincronizar(); else if(syncLiberado) aoVoltarFoco(); });
 window.addEventListener("offline",()=>marcaSync("offline"));
