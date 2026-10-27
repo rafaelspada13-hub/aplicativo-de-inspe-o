@@ -1423,6 +1423,7 @@ async function aplicarNuvem(dados){
     const vivos=new Set(Object.keys(porId));
     for(const o of locais){ if(!vivos.has(o.id)){ await set("os:"+o.id,null); local("os:"+o.id,null); } }
     const osFinal=Object.values(porId);
+    try{ await hidratar({os:osFinal}); }catch(e){} // referência "sbf:" que ficou no aparelho (ex.: versão antiga) vira foto; se falhar, tenta no próximo sync
     indice=[];
     for(const o of osFinal){ await set("os:"+o.id,o);
       indice.push({id:o.id,numero:o.numero,clienteId:o.clienteId,data:o.data,
