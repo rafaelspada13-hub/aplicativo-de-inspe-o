@@ -313,7 +313,7 @@ function resultadoValv(v){ const nc=valvulaTemNC(v),fa=valvulaTemFalta(v);
 
 function situacaoOS(o){
   if(!o.valvulas.length) return "SEM VÁLVULAS";
-  const todas=o.valvulas.every(valvulaCompleta);
+  const todas=o.valvulas.every(v=>v.condenada||valvulaCompleta(v)); // condenada não precisa de avaliação completa
   if(!todas || !o.a1) return "EM ANDAMENTO";
   return o.valvulas.some(valvulaTemNC) ? "COM ADITIVO" : "CONCLUÍDA";
 }
@@ -758,7 +758,10 @@ function etTipo(){
   <p class="note">Só a borboleta monobloco está com o padrão definitivo. Os outros tipos seguem provisórios até você passar o padrão de cada um.</p>`;
   setDock("");
   app.querySelectorAll("[data-t]").forEach(b=>b.onclick=async()=>{
-    if(V.tipo&&V.tipo!==b.dataset.t){ V.m1={};V.nc={};V.prop={}; }
+    if(V.tipo&&V.tipo!==b.dataset.t){
+      const temAval=Object.keys(V.m1||{}).some(k=>k.startsWith("aval-")&&V.m1[k]);
+      if(temAval&&!confirm("Trocar o tipo apaga a avaliação desta válvula, com as fotos e recomendações das não conformidades. Trocar mesmo assim?")) return;
+      V.m1={};V.nc={};V.prop={}; }
     V.tipo=b.dataset.t; autoProc(); await salvar(); etapa=1; render(); });
 }
 
@@ -843,6 +846,9 @@ function etAval(){
       </div></div>`; }).join("")+`</div>`;
   app.querySelectorAll(".mk").forEach(b=>b.onclick=async()=>{
     const k=b.dataset.k;
+    if(V.m1[k]==="nc"){ const d=V.nc[k]||{}, pr=(V.prop||{})[k]||{};
+      const temDados=(d.fotos&&d.fotos.length)||(d.rec||"").trim()||pr.inc;
+      if(temDados&&!confirm("Este componente está como não conforme. Mudar apaga as fotos, a recomendação e o valor do aditivo dele. Mudar mesmo assim?")) return; }
     V.m1[k]=V.m1[k]===b.dataset.v?"":b.dataset.v;
     if(V.m1[k]!=="nc"){ delete V.nc[k]; delete V.prop[k]; }
     await salvar(); etAval();
@@ -928,8 +934,8 @@ function telaAditivo(){
         ${(cfg.taxas||[]).map(t=>`<div class="l"><span>${esc(t.nome)} — horas</span>
           <input type="number" inputmode="decimal" data-p="${id}" data-f="h:${t.id}" value="${(p.horas||{})[t.id]??""}"></div>`).join("")}
         <div class="l"><span>Preço ao cliente (R$)</span><input type="number" inputmode="decimal" data-p="${id}" data-f="preco" value="${p.preco??""}"></div>
-        <div class="tot"><span>Custo</span><b>${brl(custoItem(p))}</b></div>
-        <div class="tot"><span>Margem</span><b class="${(Number(p.preco)||0)-custoItem(p)>=0?"mg-ok":"mg-bad"}">${brl((Number(p.preco)||0)-custoItem(p))}</b></div>
+        <div class="tot"><span>Custo</span><b data-custo="${id}">${brl(custoItem(p))}</b></div>
+        <div class="tot"><span>Margem</span><b data-margem="${id}" class="${(Number(p.preco)||0)-custoItem(p)>=0?"mg-ok":"mg-bad"}">${brl((Number(p.preco)||0)-custoItem(p))}</b></div>
       </div>`:"";
       return `<div class="prop"><div class="hd"><div class="g">
         <div style="font-size:11px;color:var(--steel);font-weight:600">Item ${a.v.item} · ${esc(a.v.tag)} · A-${+a.k.split("-")[1]+1}</div>
@@ -939,9 +945,9 @@ function telaAditivo(){
         </div><button class="tg" data-inc="${id}" aria-pressed="${!!p.inc}">${p.inc?"Na proposta":"Incluir"}</button></div>
         ${calc}</div>`; }).join("")+`</div>
     <div class="big">
-      <div class="tot"><span>Custo total</span><b>${brl(T.custo)}</b></div>
-      <div class="tot"><span>Preço ao cliente</span><b>${brl(T.preco)}</b></div>
-      <div class="tot"><span>Margem</span><b class="${T.margem>=0?"mg-ok":"mg-bad"}">${brl(T.margem)}${T.preco>0?" · "+T.pct.toFixed(1)+"%":""}</b></div>
+      <div class="tot"><span>Custo total</span><b id="tCusto">${brl(T.custo)}</b></div>
+      <div class="tot"><span>Preço ao cliente</span><b id="tPreco">${brl(T.preco)}</b></div>
+      <div class="tot"><span>Margem</span><b id="tMargem" class="${T.margem>=0?"mg-ok":"mg-bad"}">${brl(T.margem)}${T.preco>0?" · "+T.pct.toFixed(1)+"%":""}</b></div>
     </div>
     ${(cfg.taxas||[]).every(t=>!Number(t.valor))?`<div class="warn">As taxas de hora estão zeradas. Preencha na aba Taxas para o custo sair certo.</div>`:""}`;
 
@@ -954,8 +960,12 @@ function telaAditivo(){
   app.querySelectorAll("[data-p]").forEach(i=>i.oninput=()=>{
     const {v,k}=achar(i.dataset.p), f=i.dataset.f, p=v.prop[k]||{horas:{}};
     if(f.startsWith("h:")){ p.horas=p.horas||{}; p.horas[f.slice(2)]=i.value; } else p[f]=i.value;
-    v.prop[k]=p;
-    if(f!=="desc"){ clearTimeout(i._t); i._t=setTimeout(async()=>{ await salvar(); telaAditivo(); },700); } else autoSalvar(); });
+    v.prop[k]=p; if(f!=="desc") pintaTotais(); autoSalvar(); });
+  function pintaTotais(){ const txt=(sel,t,cls)=>{ const e=app.querySelector(sel); if(e){ e.textContent=t; if(cls) e.className=cls; } };
+    aditivosOS(OS).forEach(a=>{ const id=a.v.id+"|"+a.k, c=custoItem(a.p), m=(Number(a.p.preco)||0)-c;
+      txt(`[data-custo="${id}"]`,brl(c)); txt(`[data-margem="${id}"]`,brl(m),m>=0?"mg-ok":"mg-bad"); });
+    const T=totaisOS(OS); txt("#tCusto",brl(T.custo)); txt("#tPreco",brl(T.preco));
+    txt("#tMargem",brl(T.margem)+(T.preco>0?" · "+T.pct.toFixed(1)+"%":""),T.margem>=0?"mg-ok":"mg-bad"); }
 
   setDock(`<button class="btn primary" id="volta">Voltar para a OS</button>
            <button class="btn ghost" id="pp">Gerar proposta de aditivo</button>`);
@@ -991,7 +1001,7 @@ function linhasHistorico(oss){
         destino:(v.nc[k]||{}).destino, p:(v.prop||{})[k]||{}}));
       const preco=ad.filter(a=>a.p.inc).reduce((t,a)=>t+(Number(a.p.preco)||0),0);
       const custo=ad.filter(a=>a.p.inc).reduce((t,a)=>t+custoItem(a.p),0);
-      linhas.push({os:o.numero, osId:o.id, data:o.data, cliente:cli, v, fab,
+      linhas.push({os:o.numero, osId:o.id, data:o.data, criado:String(o.criado||""), cliente:cli, v, fab,
         tipo:v.tipo?TIPOS[v.tipo].nome:"—", modelo:v.modelo||"sem modelo",
         bitola:v.bitola||"", ad, preco, custo, chave:fab+" · "+(v.modelo||"sem modelo")+" · "+(v.bitola?v.bitola+'"':"sem bitola")});
     });
@@ -1061,9 +1071,10 @@ function telaHistGrupo(){
     const precos={};
     linhas.forEach(l=>l.ad.filter(a=>a.p.inc).forEach(a=>{
       const nome=(a.p.desc||a.texto).trim();
-      const r=precos[nome]=precos[nome]||{n:0,soma:0,min:Infinity,max:0,ultimo:0,data:""};
+      const r=precos[nome]=precos[nome]||{n:0,soma:0,min:Infinity,max:0,ultimo:0,data:"",quando:""};
       const v=Number(a.p.preco)||0;
-      r.n++; r.soma+=v; r.min=Math.min(r.min,v); r.max=Math.max(r.max,v); r.ultimo=v; r.data=l.data;
+      r.n++; r.soma+=v; r.min=Math.min(r.min,v); r.max=Math.max(r.max,v);
+      if(r.n===1||l.criado>=r.quando){ r.ultimo=v; r.data=l.data; r.quando=l.criado; } // "último" é o da OS mais nova
     }));
     const ps=Object.entries(precos);
     app.innerHTML=
@@ -1276,19 +1287,18 @@ function telaTaxas(){
   impok.onclick=async()=>{
     let p; try{ p=JSON.parse(bk.value); }catch(e){ aviso("O texto colado não é um backup válido."); return; }
     if(!p||!Array.isArray(p.os)||!Array.isArray(p.clientes)){ aviso("Backup incompleto ou de outro formato."); return; }
-    if(!confirm("Restaurar "+p.os.length+" OS e "+p.clientes.length+" clientes? Eles serão juntados aos dados atuais.")) return;
-    cfg=p.cfg&&p.cfg.taxas?p.cfg:cfg;
-    clientes=p.clientes||[]; fabricantes=p.fabricantes||[];
-    indice=p.os.map(o=>({id:o.id,numero:o.numero,clienteId:o.clienteId,data:o.data,
-      qtd:(o.valvulas||[]).length,situacao:"EM ANDAMENTO",criado:o.criado}));
+    if(!confirm("Restaurar "+p.os.length+" OS e "+p.clientes.length+" clientes? Eles serão juntados aos dados atuais; nada do que está no aparelho é apagado.")) return;
+    const juntar=(loc,novo)=>{ const ids=new Set(loc.map(x=>x.id)); return loc.concat((novo||[]).filter(x=>x&&x.id&&!ids.has(x.id))); };
+    if(p.cfg&&p.cfg.taxas&&p.cfg.taxas.length&&String(p.cfg.atualizado||"")>=String(cfg.atualizado||"")) cfg=p.cfg; // taxas: fica a mais recente
+    clientes=juntar(clientes,p.clientes); fabricantes=juntar(fabricantes,p.fabricantes);
     await set("cfg",cfg); await set("clientes",clientes); await set("fabricantes",fabricantes);
-    for(let i=0;i<p.os.length;i++){ const o=p.os[i]; const atual=await get("os:"+o.id);
-      const m=atual?mesclarOS(atual,o):o; m.atualizado=new Date().toISOString(); p.os[i]=m; await set("os:"+o.id,m); }
-    // recalcula a situação de cada OS
-    const guard=OS;
-    for(const o of p.os){ OS=o; const i=indice.findIndex(x=>x.id===o.id); if(i>=0){ indice[i].situacao=situacaoOS(o); indice[i].qtd=(o.valvulas||[]).length; } }
-    OS=guard;
-    await set("os:index",indice); cacheOS=null;
+    for(const o of p.os){ if(!o||!o.id) continue;
+      const atual=await get("os:"+o.id);
+      const m=atual?mesclarOS(atual,o):o; m.atualizado=new Date().toISOString(); await set("os:"+o.id,m);
+      const meta={id:m.id,numero:m.numero,clienteId:m.clienteId,data:m.data,qtd:(m.valvulas||[]).length,situacao:situacaoOS(m),criado:m.criado};
+      const i=indice.findIndex(x=>x.id===m.id); if(i>=0) indice[i]=meta; else indice.push(meta); }
+    indice.sort((x,y)=>String(y.criado||"").localeCompare(String(x.criado||"")));
+    await set("os:index",indice); cacheOS=null; await dedupeFab();
     marcarBackupFeito();
     aviso("Backup restaurado: "+p.os.length+" OS e "+p.clientes.length+" clientes.");
     render();
