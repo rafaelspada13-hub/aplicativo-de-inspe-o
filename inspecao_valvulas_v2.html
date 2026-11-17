@@ -743,7 +743,7 @@ function telaOS(){
     if(!OS.a1.trim()){ aviso("Preencha o responsável pela inspeção."); return; }
     const inc=OS.valvulas.filter(v=>!v.condenada&&!valvulaCompleta(v));
     if(inc.length){ aviso("Laudo bloqueado: item "+inc.map(v=>v.item).join(", ")+" incompleto. Marque todos os componentes e, nas não conformidades, foto, destino e recomendação."); return; }
-    await salvar(); await prepararTextos("laudo"); pdfLaudo(); };
+    await salvar(); pdfLaudo(); };
   document.getElementById("del").onclick=async()=>{
     if(!confirm("Excluir esta OS com todas as válvulas e fotos? Não tem como desfazer.")) return;
     await apagarOS(OS.id); tela="lista"; OS=null; render(); };
@@ -988,7 +988,7 @@ function telaAditivo(){
     const inc=aditivosOS(OS).filter(a=>a.p.inc);
     if(!inc.length){ aviso("Inclua ao menos um item na proposta."); return; }
     if(inc.some(a=>!(Number(a.p.preco)>0))){ aviso("Preencha o preço ao cliente em todos os itens incluídos."); return; }
-    await prepararTextos("proposta"); pdfProposta(); };
+    pdfProposta(); };
 }
 
 /* ---------------- histórico */
@@ -1322,11 +1322,10 @@ function telaTaxas(){
 
 /* ============================================================ PDF */
 
-function janela(html,titulo,topo,refazer){
+function janela(html,titulo,topo){
   document.querySelectorAll(".sheetwrap").forEach(e=>e.remove());
   const d=document.createElement("div"); d.className="sheetwrap";
   d.innerHTML=`<div class="sheettop"><button id="shClose">Fechar</button>`+
-    (refazer&&temFormal()?`<button id="shOrig">${textoOriginal?"Ver texto aprimorado":"Ver texto original"}</button>`:"")+
     `<button id="shPrint" class="pr">Imprimir ou salvar PDF</button></div><div class="sheet">${html}</div>`;
   document.body.appendChild(d); document.body.classList.add("printing");
   // o título da página vira o nome do PDF e o texto no topo de cada folha (no lugar da data e do título do app)
@@ -1337,8 +1336,6 @@ function janela(html,titulo,topo,refazer){
   document.head.appendChild(st);
   d.querySelector("#shClose").onclick=()=>{ d.remove(); st.remove(); document.title=tituloApp; document.body.classList.remove("printing"); };
   d.querySelector("#shPrint").onclick=()=>window.print();
-  const or=d.querySelector("#shOrig");
-  if(or) or.onclick=()=>{ textoOriginal=!textoOriginal; st.remove(); document.title=tituloApp; refazer(); };
   window.scrollTo(0,0);
 }
 
@@ -1382,52 +1379,6 @@ const lista=xs=>xs.length<2?xs.join(""):xs.slice(0,-1).join(", ")+" e "+xs[xs.le
 const EXTENSO=["zero","uma","duas","três","quatro","cinco","seis","sete","oito","nove","dez","onze","doze","treze","quatorze","quinze","dezesseis","dezessete","dezoito","dezenove","vinte"];
 const qtd=(n,s,p)=>n+(EXTENSO[n]&&n>1?" ("+EXTENSO[n]+")":"")+" "+(n===1?s:p);
 
-/* ---- redação aprimorada por IA (função "aprimorar-texto" no Supabase, que chama o Claude).
-   O texto digitado continua gravado como foi escrito; a versão formal fica em OS.formal e só aparece nos documentos.
-   Sem internet ou se a função falhar, vale a correção simples de frase(). */
-let textoOriginal=false;
-const chaveTexto=x=>[x.campo,x.componente||"",x.destino||"",String(x.texto).trim()].join("|");
-function textosDaOS(qual){ const out=[];
-  OS.valvulas.forEach(v=>{ const n=nomeValv(v), valv=[n.tipo,n.marca].filter(Boolean).join(" ");
-    if(qual==="laudo"){
-      if(v.condenada&&(v.condenadaMotivo||"").trim()) out.push({campo:"motivo",texto:v.condenadaMotivo,valvula:valv});
-      chavesAval(v).filter(k=>v.m1[k]==="nc").forEach(k=>{ const d=v.nc[k]||{};
-        if((d.rec||"").trim()) out.push({campo:"rec",texto:d.rec,componente:textoItem(k,v),destino:d.destino==="substituicao"?"substituição":"recuperação",valvula:valv}); });
-    } });
-  if(qual==="proposta") aditivosOS(OS).filter(a=>a.p.inc&&(a.p.desc||"").trim()).forEach(a=>
-    out.push({campo:"desc",texto:a.p.desc,componente:a.texto,destino:(a.v.nc[a.k]||{}).destino==="substituicao"?"substituição":"recuperação"}));
-  return out; }
-function temFormal(){ return !!(OS&&OS.formal&&Object.keys(OS.formal).length); }
-function formal(x){ // texto que vai para o documento
-  if(!textoOriginal&&OS.formal){ const f=OS.formal[chaveTexto(x)]; if(f) return f; }
-  return textoOriginal?String(x.texto||"").trim():frase(x.texto); }
-async function prepararTextos(qual){
-  textoOriginal=false;
-  const todos=textosDaOS(qual); OS.formal=OS.formal||{};
-  const faltam=[], vistos=new Set();
-  todos.forEach(x=>{ const k=chaveTexto(x); if(!OS.formal[k]&&!vistos.has(k)){ vistos.add(k); faltam.push(Object.assign({id:"t"+faltam.length,chave:k},x)); } });
-  if(!faltam.length) return;
-  if(!sb||!navigator.onLine){ aviso("Sem internet: o texto sai com a correção simples."); return; }
-  const tela=document.createElement("div");
-  tela.style.cssText="position:fixed;inset:0;z-index:90;background:rgba(255,255,255,.92);display:flex;align-items:center;justify-content:center;font-weight:650;color:var(--navy);padding:20px;text-align:center";
-  tela.textContent="Aprimorando a redação do "+(qual==="laudo"?"laudo":"aditivo")+"…"; document.body.appendChild(tela);
-  try{
-    const chamada=sb.functions.invoke("aprimorar-texto",{body:{itens:faltam.map(({chave,...x})=>x)}});
-    const r=await Promise.race([chamada,new Promise((_,rej)=>setTimeout(()=>rej(new Error("demorou demais")),45000))]);
-    if(r.error) throw r.error;
-    const porId={}; faltam.forEach(x=>porId[x.id]=x.chave);
-    let n=0; ((r.data&&r.data.itens)||[]).forEach(y=>{ if(porId[y.id]&&String(y.texto||"").trim()){ OS.formal[porId[y.id]]=String(y.texto).trim(); n++; } });
-    // guarda só o que ainda corresponde a algum texto da OS (laudo e proposta)
-    const vivas=new Set([...textosDaOS("laudo"),...textosDaOS("proposta")].map(chaveTexto));
-    Object.keys(OS.formal).forEach(k=>{ if(!vivas.has(k)) delete OS.formal[k]; });
-    if(n) await salvar();
-    if(n<faltam.length) aviso("Parte do texto não foi aprimorada; esses trechos saem com a correção simples.");
-  }catch(e){
-    aviso("Não deu para aprimorar a redação agora; o texto sai com a correção simples.");
-    try{ console.warn("aprimorar-texto:",e&&e.message||e); }catch(_){}
-  }finally{ tela.remove(); }
-}
-
 function pdfLaudo(){
   const c=clientes.find(x=>x.id===OS.clienteId)||{};
   const vs=OS.valvulas;
@@ -1441,7 +1392,7 @@ function pdfLaudo(){
 
   const constatacoes=v=>{ const ks=chavesAval(v), nome=k=>textoItem(k,v).toLowerCase();
     const nc=ks.filter(k=>v.m1[k]==="nc").map(nome), fa=ks.filter(k=>v.m1[k]==="falta").map(nome), out=[];
-    if(v.condenada) out.push(esc(formal({campo:"motivo",texto:v.condenadaMotivo}))||"Inviável para recuperação.");
+    if(v.condenada) out.push(esc(frase(v.condenadaMotivo))||"Inviável para recuperação.");
     if(nc.length) out.push("Não conformidade em "+lista(nc)+".");
     if(fa.length) out.push((fa.length===1?"Componente ausente":"Componentes ausentes")+" no recebimento: "+lista(fa)+".");
     return out.join("<br>")||"Nenhuma não conformidade constatada."; };
@@ -1480,14 +1431,14 @@ function pdfLaudo(){
     const linhas=ks.map(k=>{ if(v.condenada && v.m1[k]!=="nc" && v.m1[k]!=="falta") return "";
       const r=ROT_AVAL[v.m1[k]]||["l-na","Não avaliado"];
       return `<tr><td>${textoItem(k,v)}</td><td style="width:110px">${selo(r[0],r[1])}</td></tr>`; }).join("");
-    const cartoes=ncs.map(k=>{ const d=v.nc[k]||{}, comp=textoItem(k,v), dest=d.destino==="substituicao"?"substituição":"recuperação";
+    const cartoes=ncs.map(k=>{ const d=v.nc[k]||{}, comp=textoItem(k,v);
       return `<div class="l-ncard"><div class="h"><b>${comp}</b>${selo("l-nc",d.destino==="substituicao"?"Substituição":"Recuperação")}</div>
-        <div><small class="r">Recomendação técnica</small>${esc(formal({campo:"rec",texto:d.rec,componente:comp,destino:dest}))||"—"}</div>${figuras(d.fotos,comp+" (item "+v.item+")")}</div>`; }).join("");
+        <div><small class="r">Recomendação técnica</small>${esc(frase(d.rec))||"—"}</div>${figuras(d.fotos,comp+" (item "+v.item+")")}</div>`; }).join("");
     const exec=[v.montador&&"Executante: "+esc(v.montador),v.pintor&&"Pintura: "+esc(v.pintor),v.video&&"Registro em vídeo do teste: "+esc(v.video)].filter(Boolean).join(" · ");
     return `<div class="l-valv">
       <div class="l-vh"><div class="g"><b>Item ${v.item} · ${tagValv(v)}</b><span>${[n.tipo,n.marca].filter(Boolean).join(" · ")}</span></div>${selo(st[0],st[1])}</div>
       <p class="l-os">Ordem de serviço ${esc(OS.numero)} · ${esc(c.nome)}</p>
-      ${v.condenada?`<div class="l-cond"><b>Parecer: válvula condenada.</b> Motivo: ${esc(formal({campo:"motivo",texto:v.condenadaMotivo}))||"inviabilidade técnica de recuperação."}</div>`:""}
+      ${v.condenada?`<div class="l-cond"><b>Parecer: válvula condenada.</b> Motivo: ${esc(frase(v.condenadaMotivo))||"inviabilidade técnica de recuperação."}</div>`:""}
       ${linhas?`<h2>${v.condenada?"Componentes reprovados":"Resultado da inspeção dos componentes"}</h2>
         <table><tr><th>Componente</th><th>Situação</th></tr>${linhas}</table>`:""}
       ${cartoes?`<h2>Não conformidades e recomendações técnicas</h2>${cartoes}`:""}
@@ -1497,7 +1448,7 @@ function pdfLaudo(){
       ${exec?`<p class="l-nota" style="margin-top:12px">${exec}</p>`:""}</div>`;
   }).join("");
 
-  janela(capa+paginas,`Laudo de inspeção - ${osTxt()} - ${c.nome||""}`.trim(),`Laudo de inspeção de manutenção · ${osTxt()}`,pdfLaudo);
+  janela(capa+paginas,`Laudo de inspeção - ${osTxt()} - ${c.nome||""}`.trim(),`Laudo de inspeção de manutenção · ${osTxt()}`);
 }
 
 function pdfProposta(){
@@ -1506,7 +1457,7 @@ function pdfProposta(){
   const T=totaisOS(OS);
   const contato=c.telefone||c.email;
   const linhas=inc.map((a,n)=>{ const d=(a.v.nc[a.k]||{}), nv=nomeValv(a.v);
-    const desc=(a.p.desc?formal({campo:"desc",texto:a.p.desc,componente:a.texto,destino:d.destino==="substituicao"?"substituição":"recuperação"}):frase(a.texto)).replace(/\.$/,"");
+    const desc=frase(a.p.desc||a.texto).replace(/\.$/,"");
     return `<tr><td><b>${n+1}</b></td>
     <td><b>${esc(desc)}</b><br><span style="font-size:10px;color:#555">Item ${a.v.item} · ${tagValv(a.v)}${nv.tipo?" · "+nv.tipo:""} · ${a.texto}: ${d.destino==="substituicao"?"substituição":"recuperação"}</span></td>
     <td class="num">${brl(a.p.preco)}</td></tr>`; }).join("");
@@ -1517,7 +1468,7 @@ function pdfProposta(){
       <tr class="l-total"><td colspan="2" class="num">Valor total do aditivo</td><td class="num">${brl(T.preco)}</td></tr></table>
     <div class="l-concl"><b>Condições.</b> Os valores referem-se exclusivamente aos componentes não conformes constatados na inspeção e são adicionais à manutenção padrão contratada. Prazo de execução e condições de pagamento a definir.</div>
     <div class="l-ass"><div><b>New Válvulas</b>${esc(hoje())}</div><div><b>&nbsp;</b>Aprovação do cliente · data</div></div>`,
-    `Proposta de aditivo - ${osTxt()} - ${c.nome||""}`.trim(),`Proposta de aditivo · ${osTxt()}`,pdfProposta);
+    `Proposta de aditivo - ${osTxt()} - ${c.nome||""}`.trim(),`Proposta de aditivo · ${osTxt()}`);
 }
 
 /* ============================================================ NUVEM (Supabase) */
