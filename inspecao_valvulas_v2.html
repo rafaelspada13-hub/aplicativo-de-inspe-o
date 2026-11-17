@@ -156,6 +156,7 @@ body.comAbas{padding-bottom:210px}
 .sheet .l-proc{columns:2;column-gap:22px;margin:0;padding-left:20px;font-size:10.5px;color:#222}
 .sheet .l-proc li{break-inside:avoid;margin-bottom:2px}
 .sheet .l-nota{font-size:10px;color:#555;margin:4px 0 0}
+.sheet .l-obj{margin:0 0 12px;font-size:11.5px;color:#222;text-align:justify}
 .sheet .l-ass{display:flex;gap:28px;margin-top:44px;break-inside:avoid}
 .sheet .l-ass div{flex:1;border-top:1px solid #000;padding-top:5px;font-size:10px;text-align:center}
 .sheet .l-ass b{display:block;font-size:11.5px}
@@ -167,7 +168,9 @@ body.comAbas{padding-bottom:210px}
   .sheetwrap{position:static;overflow:visible}
   .sheet{padding:0;max-width:none;font-size:11px}
   .sheet .l-valv{margin-top:0}
-  @page{size:A4;margin:12mm 12mm 15mm;
+  @page{size:A4;margin:14mm 12mm 15mm;
+    @top-left{content:"";font:8px Arial,sans-serif;color:#666}
+    @top-right{content:"";}
     @bottom-left{content:"New Válvulas";font:8px Arial,sans-serif;color:#666}
     @bottom-right{content:"Página " counter(page) " de " counter(pages);font:8px Arial,sans-serif;color:#666}}
 }
@@ -195,33 +198,44 @@ body.comAbas{padding-bottom:210px}
 const BITOLAS=[2,3,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,36];
 const MECANICOS=["André Galo","Almir Bruno","Marcos Júnior","Hudson Sanches","William Tilápia"];
 
-const PROC_BORBOLETA=["Desmontagem","Limpeza mecânica e desengraxe","Jateamento abrasivo",
-  "Ensaio de líquido penetrante (LP)","Substituição dos fixadores e anel trava","Substituição das gaxetas",
-  "Substituição da sede","Montagem","Teste hidrostático","Teste funcional","Pintura padrão New Equipamentos"];
+const PROC_BORBOLETA=["Desmontagem completa da válvula","Limpeza mecânica e desengraxamento dos componentes",
+  "Jateamento abrasivo das superfícies","Ensaio não destrutivo por líquido penetrante (LP)",
+  "Substituição dos elementos de fixação e do anel-trava","Substituição do conjunto de gaxetas",
+  "Substituição da sede de vedação","Montagem e ajuste dos componentes","Teste hidrostático",
+  "Teste funcional de abertura e fechamento","Pintura conforme padrão New Equipamentos"];
 
+/* Os textos abaixo saem no laudo. Mudar o texto é seguro; NÃO mude a quantidade nem a ordem dos itens
+   (a avaliação gravada em cada válvula é guardada pela posição do item). */
 const TIPOS={
   bb_mono:{nome:"Borboleta monobloco",desc:"Sede elastomérica",proc:PROC_BORBOLETA,
-    aval:["Corpo","Disco","Haste","Caixa redutora","Alavanca","Pinos","Tampão"]},
+    aval:["Corpo","Disco","Haste","Caixa redutora","Alavanca de acionamento","Pinos de fixação do disco","Tampão"]},
   bb_bi:{nome:"Borboleta bicêntrica",desc:"Sede metálica ou anel",proc:PROC_BORBOLETA,prov:true,
-    aval:["Corpo","Disco","Haste","Anel de vedação","Caixa redutora","Pinos","Buchas"]},
+    aval:["Corpo","Disco","Haste","Anel de vedação","Caixa redutora","Pinos de fixação do disco","Buchas-guia da haste"]},
   globo_man:{nome:"Globo manual",desc:"Haste roscada e volante",prov:true,
-    proc:["Desmontagem","Limpeza mecânica e desengraxe","Jateamento abrasivo","Ensaio de líquido penetrante (LP)",
-      "Lapidação ou substituição de sede e tampão","Substituição das gaxetas","Substituição dos fixadores e anel trava",
-      "Montagem","Teste hidrostático","Teste funcional","Pintura padrão New Equipamentos"],
-    aval:["Corpo","Tampão","Sede","Haste","Castelo","Volante","Gaxeta"]},
+    proc:["Desmontagem completa da válvula","Limpeza mecânica e desengraxamento dos componentes","Jateamento abrasivo das superfícies",
+      "Ensaio não destrutivo por líquido penetrante (LP)","Lapidação ou substituição da sede e do tampão","Substituição do conjunto de gaxetas",
+      "Substituição dos elementos de fixação e do anel-trava","Montagem e ajuste dos componentes","Teste hidrostático",
+      "Teste funcional de abertura e fechamento","Pintura conforme padrão New Equipamentos"],
+    aval:["Corpo","Tampão (obturador)","Sede","Haste","Castelo","Volante","Gaxetas"]},
   globo_aut:{nome:"Globo automática",desc:"Atuador e posicionador",prov:true,
-    proc:["Desmontagem","Limpeza mecânica e desengraxe","Jateamento abrasivo","Ensaio de líquido penetrante (LP)",
-      "Lapidação ou substituição de sede e tampão","Substituição das gaxetas","Revisão do atuador","Montagem",
-      "Teste hidrostático","Calibração de curso e posicionador","Teste funcional","Pintura padrão New Equipamentos"],
-    aval:["Corpo","Tampão","Sede","Gaiola","Haste","Atuador","Posicionador"]},
+    proc:["Desmontagem completa da válvula","Limpeza mecânica e desengraxamento dos componentes","Jateamento abrasivo das superfícies",
+      "Ensaio não destrutivo por líquido penetrante (LP)","Lapidação ou substituição da sede e do tampão","Substituição do conjunto de gaxetas",
+      "Revisão do atuador","Montagem e ajuste dos componentes","Teste hidrostático","Calibração de curso e do posicionador",
+      "Teste funcional de abertura e fechamento","Pintura conforme padrão New Equipamentos"],
+    aval:["Corpo","Tampão (obturador)","Sede","Gaiola","Haste","Atuador","Posicionador"]},
   gaveta:{nome:"Gaveta",desc:"Cunha e haste ascendente",
-    proc:["Desmontagem completa da válvula","Limpeza mecânica e desengraxe","Ensaio LP em corpo, tampa e haste (NBR 15827)","Lapidação da sede","Troca de fixadores (parafusos, porcas, arruelas) e anel trava","Troca da gaxeta do prensa-gaxeta","Troca das juntas","Teste hidrostático/pneumático conforme API 598","Teste funcional de abertura/fechamento","Jateamento abrasivo","Pintura industrial"],
-    aval:["Corpo","Obturador","Haste","Preme","Volante","Porca do fuso"]},
+    proc:["Desmontagem completa da válvula","Limpeza mecânica e desengraxamento dos componentes",
+      "Ensaio não destrutivo por líquido penetrante (LP) no corpo, tampa e haste (NBR 15827)","Lapidação das sedes",
+      "Substituição dos elementos de fixação (parafusos, porcas e arruelas) e do anel-trava","Substituição da gaxeta do preme-gaxeta",
+      "Substituição das juntas","Teste hidrostático ou pneumático conforme API 598","Teste funcional de abertura e fechamento",
+      "Jateamento abrasivo das superfícies","Pintura industrial"],
+    aval:["Corpo","Obturador (cunha)","Haste","Preme-gaxeta","Volante","Porca do fuso"]},
   esfera:{nome:"Esfera",desc:"Assentos e vedação de haste",prov:true,
-    proc:["Desmontagem","Limpeza mecânica e desengraxe","Jateamento abrasivo","Ensaio de líquido penetrante (LP)",
-      "Substituição dos assentos","Substituição da vedação da haste","Substituição dos fixadores e anel trava",
-      "Montagem","Teste hidrostático","Teste funcional","Pintura padrão New Equipamentos"],
-    aval:["Corpo","Esfera","Assentos","Haste","Vedação da haste","Alavanca ou atuador","Fixadores"]}
+    proc:["Desmontagem completa da válvula","Limpeza mecânica e desengraxamento dos componentes","Jateamento abrasivo das superfícies",
+      "Ensaio não destrutivo por líquido penetrante (LP)","Substituição dos assentos","Substituição da vedação da haste",
+      "Substituição dos elementos de fixação e do anel-trava","Montagem e ajuste dos componentes","Teste hidrostático",
+      "Teste funcional de abertura e fechamento","Pintura conforme padrão New Equipamentos"],
+    aval:["Corpo","Esfera","Assentos","Haste","Vedação da haste","Acionamento (alavanca ou atuador)","Elementos de fixação"]}
 };
 
 const FABRICANTES_PADRAO=[
@@ -1308,13 +1322,19 @@ function telaTaxas(){
 
 /* ============================================================ PDF */
 
-function janela(html){
+function janela(html,titulo,topo){
   document.querySelectorAll(".sheetwrap").forEach(e=>e.remove());
   const d=document.createElement("div"); d.className="sheetwrap";
   d.innerHTML=`<div class="sheettop"><button id="shClose">Fechar</button>`+
     `<button id="shPrint" class="pr">Imprimir ou salvar PDF</button></div><div class="sheet">${html}</div>`;
   document.body.appendChild(d); document.body.classList.add("printing");
-  d.querySelector("#shClose").onclick=()=>{ d.remove(); document.body.classList.remove("printing"); };
+  // o título da página vira o nome do PDF e o texto no topo de cada folha (no lugar da data e do título do app)
+  const tituloApp=document.title; if(titulo) document.title=titulo;
+  const st=document.createElement("style"); st.id="pgTopo";
+  const css=t=>'"'+String(t||"").replace(/[\\"]/g,"\\$&").replace(/\n/g," ")+'"';
+  st.textContent=`@media print{@page{@top-left{content:${css(topo||titulo)}}}}`;
+  document.head.appendChild(st);
+  d.querySelector("#shClose").onclick=()=>{ d.remove(); st.remove(); document.title=tituloApp; document.body.classList.remove("printing"); };
   d.querySelector("#shPrint").onclick=()=>window.print();
   window.scrollTo(0,0);
 }
@@ -1328,84 +1348,107 @@ function docCliente(c,extra){ const end=[c.endereco,[c.municipio,c.uf].filter(Bo
     <div><small class="r">Ordem de serviço</small><b>${esc(OS.numero)}</b></div>
     ${end||extra?`<div class="w4" style="display:flex;gap:18px"><span style="flex:1">${end?`<small class="r">Endereço</small>${esc(end)}`:""}</span>${extra||""}</div>`:""}
   </div>`; }
-const ROT_AVAL={ok:["l-ok","Conforme"],nc:["l-nc","Não conforme"],na:["l-na","Não se aplica"],falta:["l-fa","Faltante"]};
+const ROT_AVAL={ok:["l-ok","Conforme"],nc:["l-nc","Não conforme"],na:["l-na","Não aplicável"],falta:["l-fa","Ausente"]};
 function selo(cls,txt){ return `<span class="l-st ${cls}">${txt}</span>`; }
-function statusValv(v){ // situação de uma válvula em linguagem de cliente
+function statusValv(v){
   if(v.condenada) return ["l-nc","Condenada"];
   if(valvulaTemNC(v)) return ["l-nc","Não conforme"];
-  if(valvulaTemFalta(v)) return ["l-fa","Item faltante"];
+  if(valvulaTemFalta(v)) return ["l-fa","Componente ausente"];
   return ["l-ok","Conforme"]; }
 function nomeValv(v){ const f=fabricantes.find(x=>x.id===v.fabId)||{};
   return {tipo:[v.tipo?TIPOS[v.tipo].nome:"",v.bitola?v.bitola+'"':""].filter(Boolean).join(" "),
           marca:[f.nome,v.modelo].filter(Boolean).map(esc).join(" ")}; }
-function gradeFotos(fotos,rot){ return fotos&&fotos.length?`<div class="l-fotos">`+fotos.map((ft,n)=>
-  `<figure><img src="${ft}" alt=""><figcaption>${rot} — foto ${n+1}</figcaption></figure>`).join("")+`</div>`:""; }
+const osTxt=()=>/^\s*os\b/i.test(OS.numero||"")?String(OS.numero).trim():"OS "+String(OS.numero||"").trim();
+const tagValv=v=>(v.tag||"").trim()?esc(v.tag):"TAG não informada";
+
+/* Texto digitado na oficina sai no laudo como frase: sem CAIXA ALTA, com inicial maiúscula e ponto final.
+   O que está gravado no app não muda; só a impressão. */
+const SIGLAS=new Set(["LP","API","ASME","ABNT","NBR","AISI","ASTM","PTFE","EPDM","NBR","TAG","OS","CNC","PN","DN","SS","INOX"]);
+const CORRIGE={"nescessario":"necessário","nescessário":"necessário","necessario":"necessário","valvula":"válvula","valvulas":"válvulas",
+  "substituicao":"substituição","recuperacao":"recuperação","inviavel":"inviável","usinagem":"usinagem","soldagem":"soldagem","vedacao":"vedação","corpor":"corpo"};
+function frase(t){
+  t=String(t||"").replace(/\s+/g," ").trim(); if(!t) return "";
+  const letras=t.replace(/[^A-Za-zÀ-ÿ]/g,""), maius=letras.replace(/[^A-ZÀ-Þ]/g,"");
+  if(letras.length>3 && maius.length/letras.length>0.7)
+    t=t.split(" ").map(w=>{ const nu=w.replace(/[^A-Za-zÀ-ÿ0-9]/g,""); return SIGLAS.has(nu.toUpperCase())?w:w.toLowerCase(); }).join(" ");
+  t=t.split(" ").map(w=>{ const m=w.match(/^([A-Za-zÀ-ÿ]+)(.*)$/); if(!m) return w;
+    const c=CORRIGE[m[1].toLowerCase()]; return c?(m[1][0]===m[1][0].toUpperCase()?c[0].toUpperCase()+c.slice(1):c)+m[2]:w; }).join(" ");
+  t=t[0].toUpperCase()+t.slice(1);
+  return /[.!?]$/.test(t)?t:t+"."; }
+const lista=xs=>xs.length<2?xs.join(""):xs.slice(0,-1).join(", ")+" e "+xs[xs.length-1];
+const EXTENSO=["zero","uma","duas","três","quatro","cinco","seis","sete","oito","nove","dez","onze","doze","treze","quatorze","quinze","dezesseis","dezessete","dezoito","dezenove","vinte"];
+const qtd=(n,s,p)=>n+(EXTENSO[n]&&n>1?" ("+EXTENSO[n]+")":"")+" "+(n===1?s:p);
 
 function pdfLaudo(){
   const c=clientes.find(x=>x.id===OS.clienteId)||{};
-  const vs=OS.valvulas, pl=(n,s,p)=>n+" "+(n===1?s:p);
+  const vs=OS.valvulas;
   const nCond=vs.filter(v=>v.condenada).length;
   const nNC=vs.filter(v=>!v.condenada&&valvulaTemNC(v)).length;
   const nFa=vs.filter(v=>!v.condenada&&!valvulaTemNC(v)&&valvulaTemFalta(v)).length;
   const nOk=vs.length-nCond-nNC-nFa;
+  let fig=0; // figuras numeradas em sequência no laudo inteiro
+  const figuras=(fotos,rot)=>fotos&&fotos.length?`<div class="l-fotos">`+fotos.map(ft=>
+    `<figure><img src="${ft}" alt=""><figcaption>Figura ${++fig} — ${rot}</figcaption></figure>`).join("")+`</div>`:"";
 
-  const achados=v=>{ const ks=chavesAval(v), nome=k=>textoItem(k,v);
+  const constatacoes=v=>{ const ks=chavesAval(v), nome=k=>textoItem(k,v).toLowerCase();
     const nc=ks.filter(k=>v.m1[k]==="nc").map(nome), fa=ks.filter(k=>v.m1[k]==="falta").map(nome), out=[];
-    if(v.condenada) out.push(esc(v.condenadaMotivo)||"Inviável para recuperação");
-    if(nc.length) out.push("Não conforme: "+nc.join(", "));
-    if(fa.length) out.push("Faltante: "+fa.join(", "));
-    return out.join("<br>")||"Sem não conformidades"; };
+    if(v.condenada) out.push(esc(frase(v.condenadaMotivo))||"Inviável para recuperação.");
+    if(nc.length) out.push("Não conformidade em "+lista(nc)+".");
+    if(fa.length) out.push((fa.length===1?"Componente ausente":"Componentes ausentes")+" no recebimento: "+lista(fa)+".");
+    return out.join("<br>")||"Nenhuma não conformidade constatada."; };
 
-  const partes=[];
-  if(nNC) partes.push(pl(nNC,"válvula apresentou","válvulas apresentaram")+" componentes não conformes");
-  if(nFa) partes.push(pl(nFa,"válvula foi recebida","válvulas foram recebidas")+" com item faltante");
-  if(nCond) partes.push(pl(nCond,"válvula foi condenada","válvulas foram condenadas"));
-  const concl=partes.length
-    ?`<b>Conclusão:</b> das ${vs.length} válvulas inspecionadas, ${partes.join("; ")}. O detalhamento, com fotos e recomendação, está nas páginas seguintes.`+
-      (vs.some(valvulaTemNC)?" Os serviços adicionais à manutenção padrão são apresentados em proposta de aditivo.":"")
-    :`<b>Conclusão:</b> ${vs.length===1?"a válvula inspecionada está conforme e segue":"todas as "+vs.length+" válvulas inspecionadas estão conformes e seguem"} para a manutenção padrão.`;
+  const ps=[];
+  if(nOk) ps.push(qtd(nOk,"encontra-se conforme","encontram-se conformes"));
+  if(nNC) ps.push(qtd(nNC,"apresenta não conformidade em componentes","apresentam não conformidades em componentes"));
+  if(nFa) ps.push(qtd(nFa,"foi recebida com componente ausente","foram recebidas com componentes ausentes"));
+  if(nCond) ps.push(qtd(nCond,"foi condenada por inviabilidade técnica de recuperação","foram condenadas por inviabilidade técnica de recuperação"));
+  const parecer=`<b>Parecer técnico.</b> Foram inspecionadas ${qtd(vs.length,"válvula","válvulas")}. Constatou-se que ${lista(ps)}.`+
+    (nOk===vs.length?" As válvulas seguem para a execução da manutenção padrão."
+      :` As constatações, o registro fotográfico e as recomendações técnicas de cada válvula estão detalhados nas páginas seguintes.`+
+       (vs.some(v=>!v.condenada&&valvulaTemNC(v))?" Os serviços adicionais à manutenção padrão serão objeto de proposta de aditivo.":""));
 
-  const capa=docTopo("LAUDO DE INSPEÇÃO DE MANUTENÇÃO")+docCliente(c,`<span><small class="r">Data</small>${esc(OS.data)}</span>`)+
-    `<div class="l-cont">
+  const capa=docTopo("LAUDO DE INSPEÇÃO DE MANUTENÇÃO")+docCliente(c,`<span><small class="r">Data da inspeção</small>${esc(OS.d1||OS.data)}</span>`)+
+    `<p class="l-obj">Este laudo registra a inspeção de recebimento das válvulas da ordem de serviço ${esc(OS.numero)}, com a avaliação individual de cada componente, o registro fotográfico das não conformidades e as recomendações técnicas para a manutenção.</p>
+    <div class="l-cont">
       <div><b>${vs.length}</b>${vs.length===1?"válvula inspecionada":"válvulas inspecionadas"}</div>
       <div><b style="color:#1b7f4b">${nOk}</b>${nOk===1?"conforme":"conformes"}</div>
       <div><b style="color:#bd2b21">${nNC}</b>com não conformidade</div>
-      ${nFa?`<div><b style="color:#8a5a10">${nFa}</b>com item faltante</div>`:""}
+      ${nFa?`<div><b style="color:#8a5a10">${nFa}</b>com componente ausente</div>`:""}
       ${nCond?`<div><b style="color:#bd2b21">${nCond}</b>${nCond===1?"condenada":"condenadas"}</div>`:""}
     </div>
-    <h2>Resumo das válvulas</h2>
-    <table><tr><th style="width:34px">Item</th><th>TAG</th><th>Válvula</th><th>Situação</th><th>O que foi encontrado</th></tr>`+
+    <h2>Resumo da inspeção</h2>
+    <table><tr><th style="width:34px">Item</th><th>TAG</th><th>Válvula</th><th>Situação</th><th>Constatações</th></tr>`+
     vs.map(v=>{ const n=nomeValv(v), st=statusValv(v);
-      return `<tr><td><b>${v.item}</b></td><td><b>${esc(v.tag)}</b></td>
+      return `<tr><td><b>${v.item}</b></td><td><b>${(v.tag||"").trim()?esc(v.tag):"—"}</b></td>
         <td>${n.tipo}${n.marca?`<br><span style="color:#555;font-size:10px">${n.marca}</span>`:""}</td>
-        <td>${selo(st[0],st[1])}</td><td>${achados(v)}</td></tr>`; }).join("")+`</table>
-    <div class="l-concl${partes.length?" al":""}">${concl}</div>
-    <div class="l-ass"><div><b>${esc(OS.a1)||"&nbsp;"}</b>Responsável pela inspeção · ${esc(OS.d1||OS.data)}</div><div><b>&nbsp;</b>Ciente do cliente</div></div>`;
+        <td>${selo(st[0],st[1])}</td><td>${constatacoes(v)}</td></tr>`; }).join("")+`</table>
+    <div class="l-concl${nOk<vs.length?" al":""}">${parecer}</div>
+    <div class="l-ass"><div><b>${esc(OS.a1)||"&nbsp;"}</b>Responsável técnico pela inspeção · ${esc(OS.d1||OS.data)}</div><div><b>&nbsp;</b>Recebido por (cliente) · data</div></div>`;
 
   const paginas=vs.map(v=>{
     const n=nomeValv(v), st=statusValv(v), ks=chavesAval(v);
     const ncs=ks.filter(k=>v.m1[k]==="nc");
-    const linhas=ks.map((k,i)=>{ if(v.condenada && v.m1[k]!=="nc" && v.m1[k]!=="falta") return "";
+    const linhas=ks.map(k=>{ if(v.condenada && v.m1[k]!=="nc" && v.m1[k]!=="falta") return "";
       const r=ROT_AVAL[v.m1[k]]||["l-na","Não avaliado"];
       return `<tr><td>${textoItem(k,v)}</td><td style="width:110px">${selo(r[0],r[1])}</td></tr>`; }).join("");
-    const cartoes=ncs.map(k=>{ const d=v.nc[k]||{};
-      return `<div class="l-ncard"><div class="h"><b>${textoItem(k,v)}</b>${selo("l-nc",d.destino==="substituicao"?"Substituir":"Recuperar")}</div>
-        <div><small class="r">Recomendação</small>${esc(d.rec)||"—"}</div>${gradeFotos(d.fotos,textoItem(k,v))}</div>`; }).join("");
-    const exec=[v.montador&&"Mecânico: "+esc(v.montador),v.pintor&&"Pintor: "+esc(v.pintor),v.video&&"Vídeo do teste: "+esc(v.video)].filter(Boolean).join(" · ");
+    const cartoes=ncs.map(k=>{ const d=v.nc[k]||{}, comp=textoItem(k,v);
+      return `<div class="l-ncard"><div class="h"><b>${comp}</b>${selo("l-nc",d.destino==="substituicao"?"Substituição":"Recuperação")}</div>
+        <div><small class="r">Recomendação técnica</small>${esc(frase(d.rec))||"—"}</div>${figuras(d.fotos,comp+" (item "+v.item+")")}</div>`; }).join("");
+    const exec=[v.montador&&"Executante: "+esc(v.montador),v.pintor&&"Pintura: "+esc(v.pintor),v.video&&"Registro em vídeo do teste: "+esc(v.video)].filter(Boolean).join(" · ");
     return `<div class="l-valv">
-      <div class="l-vh"><div class="g"><b>Item ${v.item} · ${esc(v.tag)}</b><span>${[n.tipo,n.marca].filter(Boolean).join(" · ")}</span></div>${selo(st[0],st[1])}</div>
+      <div class="l-vh"><div class="g"><b>Item ${v.item} · ${tagValv(v)}</b><span>${[n.tipo,n.marca].filter(Boolean).join(" · ")}</span></div>${selo(st[0],st[1])}</div>
       <p class="l-os">Ordem de serviço ${esc(OS.numero)} · ${esc(c.nome)}</p>
-      ${v.condenada?`<div class="l-cond"><b>VÁLVULA CONDENADA.</b> ${esc(v.condenadaMotivo)||"Válvula considerada inviável para recuperação."}</div>`:""}
-      ${linhas?`<h2>${v.condenada?"Componentes com problema":"Avaliação dos componentes"}</h2>
+      ${v.condenada?`<div class="l-cond"><b>Parecer: válvula condenada.</b> Motivo: ${esc(frase(v.condenadaMotivo))||"inviabilidade técnica de recuperação."}</div>`:""}
+      ${linhas?`<h2>${v.condenada?"Componentes reprovados":"Resultado da inspeção dos componentes"}</h2>
         <table><tr><th>Componente</th><th>Situação</th></tr>${linhas}</table>`:""}
-      ${cartoes?`<h2>Não conformidades encontradas</h2>${cartoes}`:""}
-      ${v.condenada?"":`<div class="l-junto"><h2>Manutenção padrão prevista</h2>
+      ${cartoes?`<h2>Não conformidades e recomendações técnicas</h2>${cartoes}`:""}
+      ${v.condenada?"":`<div class="l-junto"><h2>Escopo de manutenção — procedimento padrão</h2>
         <ol class="l-proc">${itens("proc",v).map(t=>`<li>${t}</li>`).join("")}</ol></div>`}
-      ${(v.fotos||[]).length?`<div class="l-junto"><h2>Fotos da válvula</h2>${gradeFotos(v.fotos,"Item "+v.item)}</div>`:""}
+      ${(v.fotos||[]).length?`<div class="l-junto"><h2>Registro fotográfico</h2>${figuras(v.fotos,"vista geral (item "+v.item+")")}</div>`:""}
       ${exec?`<p class="l-nota" style="margin-top:12px">${exec}</p>`:""}</div>`;
   }).join("");
 
-  janela(capa+paginas);
+  janela(capa+paginas,`Laudo de inspeção - ${osTxt()} - ${c.nome||""}`.trim(),`Laudo de inspeção de manutenção · ${osTxt()}`);
 }
 
 function pdfProposta(){
@@ -1414,16 +1457,18 @@ function pdfProposta(){
   const T=totaisOS(OS);
   const contato=c.telefone||c.email;
   const linhas=inc.map((a,n)=>{ const d=(a.v.nc[a.k]||{}), nv=nomeValv(a.v);
+    const desc=frase(a.p.desc||a.texto).replace(/\.$/,"");
     return `<tr><td><b>${n+1}</b></td>
-    <td><b>${esc(a.p.desc)||a.texto}</b><br><span style="font-size:10px;color:#555">Item ${a.v.item} · TAG ${esc(a.v.tag)}${nv.tipo?" · "+nv.tipo:""} · ${a.texto} não conforme (${d.destino==="substituicao"?"substituir":"recuperar"})</span></td>
+    <td><b>${esc(desc)}</b><br><span style="font-size:10px;color:#555">Item ${a.v.item} · ${tagValv(a.v)}${nv.tipo?" · "+nv.tipo:""} · ${a.texto}: ${d.destino==="substituicao"?"substituição":"recuperação"}</span></td>
     <td class="num">${brl(a.p.preco)}</td></tr>`; }).join("");
   janela(docTopo("PROPOSTA DE ADITIVO")+
     docCliente(c,`${contato?`<span><small class="r">Contato</small>${esc(contato)}</span>`:""}<span><small class="r">Data</small>${esc(hoje())}</span>`)+
-    `<p style="margin:0 0 10px">Durante a inspeção das válvulas desta ordem de serviço foram encontrados componentes não conformes, descritos no laudo de inspeção. Segue a proposta para os serviços adicionais à manutenção padrão contratada.</p>
-    <table><tr><th style="width:34px">Nº</th><th>Serviço ou peça</th><th class="num" style="width:110px">Valor</th></tr>${linhas}
-      <tr class="l-total"><td colspan="2" class="num">Total do aditivo</td><td class="num">${brl(T.preco)}</td></tr></table>
-    <div class="l-concl"><b>Observação:</b> valores referentes somente aos componentes não conformes encontrados na inspeção, adicionais à manutenção padrão contratada. Prazo e condições a combinar.</div>
-    <div class="l-ass"><div><b>New Válvulas</b>${esc(hoje())}</div><div><b>&nbsp;</b>Aceite do cliente</div></div>`);
+    `<p class="l-obj">Na inspeção de recebimento das válvulas da ordem de serviço ${esc(OS.numero)} foram constatadas não conformidades em componentes, conforme o laudo de inspeção. Apresentamos a seguir a proposta para os serviços adicionais à manutenção padrão contratada.</p>
+    <table><tr><th style="width:34px">Nº</th><th>Serviço ou fornecimento</th><th class="num" style="width:110px">Valor</th></tr>${linhas}
+      <tr class="l-total"><td colspan="2" class="num">Valor total do aditivo</td><td class="num">${brl(T.preco)}</td></tr></table>
+    <div class="l-concl"><b>Condições.</b> Os valores referem-se exclusivamente aos componentes não conformes constatados na inspeção e são adicionais à manutenção padrão contratada. Prazo de execução e condições de pagamento a definir.</div>
+    <div class="l-ass"><div><b>New Válvulas</b>${esc(hoje())}</div><div><b>&nbsp;</b>Aprovação do cliente · data</div></div>`,
+    `Proposta de aditivo - ${osTxt()} - ${c.nome||""}`.trim(),`Proposta de aditivo · ${osTxt()}`);
 }
 
 /* ============================================================ NUVEM (Supabase) */
