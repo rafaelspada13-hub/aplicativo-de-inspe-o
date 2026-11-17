@@ -316,6 +316,7 @@ const textoItem=(k,v)=>itens("aval",v)[+k.split("-")[1]];
 function autoProc(){ if(!V||!V.tipo) return; itens("proc").forEach((_,i)=>{ V.m1["proc-"+i]="ok"; }); }
 
 function ncPendente(v){ const val=v||V;
+  if(val.condenada) return []; // condenada: foto, destino e recomendação são opcionais
   return chavesAval(val).filter(k=>{ if(val.m1[k]!=="nc") return false;
     const d=val.nc[k]||{}; return !(d.fotos&&d.fotos.length)||!d.destino||!(d.rec||"").trim(); }); }
 
@@ -755,7 +756,7 @@ function telaEtapa(){
   cab(c==="tipo"?"Tipo de válvula":c==="dados"?"Dados da válvula":c==="proc"?"Processo padrão a executar":
       c==="aval"?"Avaliação dos componentes":c==="nc"?"Não conformidades":"Resumo da válvula",
       `OS ${esc(OS.numero)} · item ${V.item} · etapa ${etapa+1} de ${ETAPAS.length}`,true);
-  back.onclick=async()=>{ await salvar(); if(etapa>0){etapa--;render();} else {tela="os";V=null;render();} };
+  back.onclick=async()=>{ await salvar(); if(etapa>0){etapa--; if(etapa===2&&V.condenada) etapa=1; render();} else {tela="os";V=null;render();} };
   if(c==="tipo") return etTipo();
   if(c==="dados") return etDados();
   if(c==="proc") return etProc();
@@ -834,7 +835,7 @@ function etDados(){
   dockIn.querySelector("#go").onclick=async()=>{
     const falta=[]; if(!V.tag.trim()) falta.push("TAG"); if(!V.montador) falta.push("mecânico");
     if(falta.length){ aviso("Preencha: "+falta.join(", ")+"."); return; }
-    await salvar(); etapa=2; render(); };
+    await salvar(); etapa=V.condenada?3:2; render(); };
 }
 
 function etProc(){
@@ -849,7 +850,7 @@ function etProc(){
 function etAval(){
   const its=itens("aval"), feitos=its.filter((_,i)=>V.m1["aval-"+i]).length;
   prog(its.length?feitos/its.length:0);
-  app.innerHTML=`<div class="card">`+its.map((t,i)=>{
+  app.innerHTML=(V.condenada?`<p class="note" style="margin:0 0 11px">Válvula condenada: marque só os componentes que levaram à condenação. Os outros podem ficar em branco.</p>`:"")+`<div class="card">`+its.map((t,i)=>{
     const k="aval-"+i,v=V.m1[k]||"";
     return `<div class="item"><div class="cod">A-${i+1}</div><div class="txt">${t}</div>
       <div class="marks">
@@ -867,9 +868,10 @@ function etAval(){
     if(V.m1[k]!=="nc"){ delete V.nc[k]; delete V.prop[k]; }
     await salvar(); etAval();
     const el=app.querySelector(`[data-k="${k}"]`); if(el) el.scrollIntoView({block:"center"}); });
-  setDock(`<button class="btn primary" id="go">${feitos<its.length?`Faltam ${its.length-feitos} itens`:"Continuar"}</button>`);
+  const exige=!V.condenada;
+  setDock(`<button class="btn primary" id="go">${exige&&feitos<its.length?`Faltam ${its.length-feitos} itens`:"Continuar"}</button>`);
   dockIn.querySelector("#go").onclick=async()=>{
-    if(feitos<its.length){ aviso("Marque todos os componentes antes de seguir."); return; }
+    if(exige&&feitos<its.length){ aviso("Marque todos os componentes antes de seguir."); return; }
     await salvar(); etapa=4; render(); };
 }
 
@@ -882,23 +884,23 @@ function etNC(){
     dockIn.querySelector("#go").onclick=async()=>{ await salvar(); etapa=5; render(); };
     return;
   }
-  app.innerHTML=`<p class="note" style="margin:0 0 11px">Todo componente não conforme precisa de pelo menos uma foto (até três), destino e recomendação.</p>`+
+  app.innerHTML=`<p class="note" style="margin:0 0 11px">${V.condenada?"Válvula condenada: foto e observação são opcionais. Basta registrar o que levou à condenação.":"Todo componente não conforme precisa de pelo menos uma foto (até três), destino e recomendação."}</p>`+
     ks.map(k=>{ const d=V.nc[k]||{};
       return `<div class="card" style="margin-bottom:11px"><div class="item">
         <div class="cod">A-${+k.split("-")[1]+1} · não conforme</div>
         <div class="txt">${textoItem(k)}</div>
-        <div class="ncbox"><h4>Evidência e destino</h4>
+        <div class="ncbox"><h4>${V.condenada?"Evidência (opcional)":"Evidência e destino"}</h4>
           <div class="foto">
             ${(d.fotos||[]).map((f,n)=>`<span style="position:relative;display:inline-block"><img src="${f}" alt="">
               <button data-del="${k}" data-n="${n}" style="position:absolute;top:-6px;right:-6px;width:22px;height:22px;min-height:0;
                 border-radius:50%;padding:0;font-size:13px;line-height:1;background:var(--nc);color:#fff;border:0;flex:none">×</button></span>`).join("")}
             ${(d.fotos||[]).length<3?`<button data-foto="${k}">Foto ${(d.fotos||[]).length+1} de 3</button>`:""}
           </div>
-          <div class="dest">
+          ${V.condenada?"":`<div class="dest">
             <button data-d="${k}" data-val="recuperacao" aria-pressed="${d.destino==="recuperacao"}">Recuperação</button>
             <button data-d="${k}" data-val="substituicao" aria-pressed="${d.destino==="substituicao"}">Não recuperação</button>
-          </div>
-          <textarea data-rec="${k}" placeholder="${d.destino==="substituicao"?"Recomendação: peça a fabricar e por quê":"Recomendação: como recuperar"}">${esc(d.rec)}</textarea>
+          </div>`}
+          <textarea data-rec="${k}" placeholder="${V.condenada?"Observação (opcional)":d.destino==="substituicao"?"Recomendação: peça a fabricar e por quê":"Recomendação: como recuperar"}">${esc(d.rec)}</textarea>
         </div></div></div>`; }).join("");
   app.querySelectorAll("[data-foto]").forEach(b=>b.onclick=()=>{
     const k=b.dataset.foto;
@@ -1432,8 +1434,8 @@ function pdfLaudo(){
       const r=ROT_AVAL[v.m1[k]]||["l-na","Não avaliado"];
       return `<tr><td>${textoItem(k,v)}</td><td style="width:110px">${selo(r[0],r[1])}</td></tr>`; }).join("");
     const cartoes=ncs.map(k=>{ const d=v.nc[k]||{}, comp=textoItem(k,v);
-      return `<div class="l-ncard"><div class="h"><b>${comp}</b>${selo("l-nc",d.destino==="substituicao"?"Substituição":"Recuperação")}</div>
-        <div><small class="r">Recomendação técnica</small>${esc(frase(d.rec))||"—"}</div>${figuras(d.fotos,comp+" (item "+v.item+")")}</div>`; }).join("");
+      return `<div class="l-ncard"><div class="h"><b>${comp}</b>${selo("l-nc",v.condenada?"Reprovado":d.destino==="substituicao"?"Substituição":"Recuperação")}</div>
+        ${v.condenada&&!(d.rec||"").trim()?"":`<div><small class="r">${v.condenada?"Observação":"Recomendação técnica"}</small>${esc(frase(d.rec))||"—"}</div>`}${figuras(d.fotos,comp+" (item "+v.item+")")}</div>`; }).join("");
     const exec=[v.montador&&"Executante: "+esc(v.montador),v.pintor&&"Pintura: "+esc(v.pintor),v.video&&"Registro em vídeo do teste: "+esc(v.video)].filter(Boolean).join(" · ");
     return `<div class="l-valv">
       <div class="l-vh"><div class="g"><b>Item ${v.item} · ${tagValv(v)}</b><span>${[n.tipo,n.marca].filter(Boolean).join(" · ")}</span></div>${selo(st[0],st[1])}</div>
@@ -1441,7 +1443,7 @@ function pdfLaudo(){
       ${v.condenada?`<div class="l-cond"><b>Parecer: válvula condenada.</b> Motivo: ${esc(frase(v.condenadaMotivo))||"inviabilidade técnica de recuperação."}</div>`:""}
       ${linhas?`<h2>${v.condenada?"Componentes reprovados":"Resultado da inspeção dos componentes"}</h2>
         <table><tr><th>Componente</th><th>Situação</th></tr>${linhas}</table>`:""}
-      ${cartoes?`<h2>Não conformidades e recomendações técnicas</h2>${cartoes}`:""}
+      ${cartoes?`<h2>${v.condenada?"Evidências da condenação":"Não conformidades e recomendações técnicas"}</h2>${cartoes}`:""}
       ${v.condenada?"":`<div class="l-junto"><h2>Escopo de manutenção — procedimento padrão</h2>
         <ol class="l-proc">${itens("proc",v).map(t=>`<li>${t}</li>`).join("")}</ol></div>`}
       ${(v.fotos||[]).length?`<div class="l-junto"><h2>Registro fotográfico</h2>${figuras(v.fotos,"vista geral (item "+v.item+")")}</div>`:""}
