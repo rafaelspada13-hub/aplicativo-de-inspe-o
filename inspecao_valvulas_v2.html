@@ -1467,22 +1467,23 @@ function trocaStrings(obj,fn){ // percorre o objeto e troca strings conforme fn 
   else if(obj&&typeof obj==="object"){ for(const k in obj){ const v=obj[k];
       if(typeof v==="string"){ const n=fn(v); if(n!==undefined) obj[k]=n; } else if(v&&typeof v==="object") trocaStrings(v,fn); } }
   return obj; }
-/* ---- conta: a nuvem só aceita quem entrou com a conta da empresa (regras em seguranca_supabase.sql).
-   A sessão (entrar, renovar, guardar no aparelho) é cuidada pela biblioteca supabase-js. */
+/* ---- conta: o app sincroniza SEM login enquanto a tabela estiver aberta. Se um dia ela for fechada
+   (seguranca_supabase.sql), a nuvem responde 401 e só então o app passa a pedir a conta. */
 const sb=(window.supabase&&window.supabase.createClient)?window.supabase.createClient(SB_URL,SB_KEY,
   {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false,storageKey:"nv-auth"}}):null;
 let contaEmail=local("nv:conta")||""; // e-mail da conta que entrou neste aparelho
 local("sb:sessao",null);              // sessão do formato antigo não é mais usada
-function semLogin(){ return !sb||!contaEmail; }
+let pedeLogin=false;                  // vira true quando a nuvem recusa acesso sem conta
+function semLogin(){ return !sb; }    // sem a biblioteca carregada não há como falar com a nuvem
 if(sb) sb.auth.onAuthStateChange((ev,s)=>{
-  if(ev==="SIGNED_OUT"){ contaEmail=""; local("nv:conta",null); syncLiberado=false; marcaSync("login"); }
+  if(ev==="SIGNED_OUT"){ contaEmail=""; local("nv:conta",null); }
   else if(s&&s.user&&s.user.email){ contaEmail=s.user.email; local("nv:conta",contaEmail); } });
 async function sbQ(q){ // executa uma consulta do supabase-js e transforma erro em exceção com .status
   const {data,error,status}=await q;
   if(error){ const e=new Error(error.message||("HTTP "+status)); e.status=status||0; throw e; }
   return data; }
 function estadoErro(e){ if(!navigator.onLine) return "offline";
-  if(e&&e.status===401){ contaEmail=""; local("nv:conta",null); return "login"; } // a nuvem não reconheceu a sessão: pede para entrar de novo
+  if(e&&e.status===401){ contaEmail=""; local("nv:conta",null); pedeLogin=true; return "login"; } // a nuvem exige conta: passa a pedir login
   return e&&e.status===403?"negado":"erro"; }
 async function fotosExistentes(hs){ // quais hashes já estão na nuvem
   const faltam=hs.filter(h=>!fotosNaNuvem.has(h));
@@ -1581,7 +1582,7 @@ let syncRodando=false;
 async function sincronizar(){
   if(!syncPend) return;
   if(!navigator.onLine){ marcaSync("offline"); return; }
-  if(semLogin()){ marcaSync("login"); return; }
+  if(semLogin()){ marcaSync("offline"); return; }
   if(syncRodando){ clearTimeout(syncTimer); syncTimer=setTimeout(sincronizar,1500); return; }
   syncRodando=true; marcaSync("enviando");
   try{ syncPend=false; await nuvemSalvar(); marcaSync(syncPend?"pendente":"ok"); if(syncPend){ clearTimeout(syncTimer); syncTimer=setTimeout(sincronizar,900); } }
@@ -1589,7 +1590,7 @@ async function sincronizar(){
   finally{ syncRodando=false; }
 }
 async function iniciarNuvem(){
-  if(semLogin()){ syncLiberado=false; marcaSync("login"); return; }
+  if(semLogin()){ syncLiberado=false; marcaSync("offline"); return; }
   marcaSync("carregando");
   try{
     const row=await nuvemCarregar();
@@ -1601,7 +1602,7 @@ async function iniciarNuvem(){
   }catch(e){ syncLiberado=true; syncPend=true; marcaSync(estadoErro(e),e); clearTimeout(syncTimer); syncTimer=setTimeout(sincronizar,20000); }
 }
 async function aoVoltarFoco(){
-  if(semLogin()){ marcaSync("login"); return; }
+  if(semLogin()){ marcaSync("offline"); return; }
   if(!syncLiberado) return iniciarNuvem();
   if(!navigator.onLine){ marcaSync("offline"); return; }
   if(syncPend){ await sincronizar(); return; }
@@ -1616,22 +1617,24 @@ function telaLogin(){
   if(document.getElementById("loginBox")) return;
   const d=document.createElement("div"); d.id="loginBox";
   d.style.cssText="position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px";
-  const logado=!semLogin();
+  const logado=!!contaEmail;
   d.innerHTML=`<div class="card" style="max-width:380px;width:100%;padding:16px">
     <h2 style="margin-top:0">Nuvem New Válvulas</h2>
     ${logado?`<p class="note">Conectado como <b>${esc(contaEmail)}</b>. Status: ${esc(document.getElementById("syncStatus").textContent)}${ultimoErro?" · "+esc(ultimoErro):""}</p>
       <button class="btn ghost" id="lgSair" style="margin-top:8px">Sair desta conta</button>`
-    :`<p class="note">Status: ${esc(document.getElementById("syncStatus").textContent)}${ultimoErro?" · "+esc(ultimoErro):""}</p><p class="note">${sb?"Entre com a conta da empresa para sincronizar. Sem entrar, os dados ficam só neste aparelho.":"Sem internet na primeira abertura: conecte e abra o app de novo para entrar."}</p>
+    :`<p class="note">Status: ${esc(document.getElementById("syncStatus").textContent)}${ultimoErro?" · "+esc(ultimoErro):""}</p>
+      ${pedeLogin?`<p class="note">A nuvem está pedindo a conta da empresa para sincronizar.</p>
       <label class="f"><span>E-mail</span><input id="lgEmail" type="email" autocomplete="username" inputmode="email"></label>
       <label class="f"><span>Senha</span><input id="lgSenha" type="password" autocomplete="current-password"></label>
-      <button class="btn primary" id="lgEntrar" style="margin-top:8px">Entrar</button>`}
+      <button class="btn primary" id="lgEntrar" style="margin-top:8px">Entrar</button>`
+      :`<p class="note">Os dados deste aparelho sincronizam sozinhos com a nuvem, sem login.</p>`}`}
     <button class="btn ghost" id="lgFechar" style="margin-top:8px">Fechar</button></div>`;
   document.body.appendChild(d);
   const fechar=()=>d.remove(); d.querySelector("#lgFechar").onclick=fechar;
   const sair=d.querySelector("#lgSair");
   if(sair) sair.onclick=async()=>{ if(!confirm("Sair da conta? Os dados continuam neste aparelho.")) return;
     try{ await sb.auth.signOut({scope:"local"}); }catch(e){}
-    contaEmail=""; local("nv:conta",null); syncLiberado=false; marcaSync("login"); fechar(); };
+    contaEmail=""; local("nv:conta",null); fechar(); };
   const ent=d.querySelector("#lgEntrar");
   if(ent) ent.onclick=async()=>{ const em=d.querySelector("#lgEmail").value.trim(), se=d.querySelector("#lgSenha").value;
     if(!em||!se){ aviso("Preencha e-mail e senha."); return; }
@@ -1640,7 +1643,7 @@ function telaLogin(){
     const {data,error}=await sb.auth.signInWithPassword({email:em,password:se});
     if(error||!data||!data.user){ aviso(error&&error.status===400?"E-mail ou senha incorretos.":"Não consegui entrar: "+((error&&error.message)||"sem resposta"));
       ent.disabled=false; ent.textContent="Entrar"; return; }
-    contaEmail=data.user.email||em; local("nv:conta",contaEmail);
+    contaEmail=data.user.email||em; local("nv:conta",contaEmail); pedeLogin=false;
     fechar(); syncPend=true; iniciarNuvem(); };
 }
 document.addEventListener("visibilitychange",()=>{ if(document.hidden) autoSalvar(true); else aoVoltarFoco(); });
@@ -1648,7 +1651,7 @@ window.addEventListener("pagehide",()=>autoSalvar(true));
 
 /* ============================================================ INIT */
 back.onclick=()=>{ tela="lista"; OS=null; V=null; render(); };
-boot().then(()=>{ render(); iniciarNuvem(); if(semLogin()) telaLogin(); });
+boot().then(()=>{ render(); iniciarNuvem(); });
 try{ if("serviceWorker" in navigator && (location.protocol==="https:"||location.hostname==="localhost")) navigator.serviceWorker.register("sw.js").catch(()=>{}); }catch(e){}
 
 </script>
