@@ -113,33 +113,63 @@ body.comAbas{padding-bottom:210px}
 .sheettop{position:sticky;top:0;display:flex;gap:9px;padding:11px 14px;background:var(--navy);z-index:2}
 .sheettop button{flex:1;border:0;border-radius:10px;padding:13px;font:inherit;font-size:15px;font-weight:650;background:rgba(255,255,255,.16);color:#fff;cursor:pointer}
 .sheettop button.pr{background:#fff;color:var(--navy)}
-.sheet{padding:14px;max-width:820px;margin:0 auto;color:#000;font:12px/1.4 Arial,Helvetica,sans-serif}
+.sheet{padding:14px;max-width:820px;margin:0 auto;color:#111;font:12px/1.45 Arial,Helvetica,sans-serif;
+       -webkit-print-color-adjust:exact;print-color-adjust:exact}
 .sheet table{width:100%;border-collapse:collapse}
-.sheet td,.sheet th{border:.8px solid #777;padding:5px 7px;vertical-align:middle}
-.sheet h1{background:#00452e;color:#fff;font-size:14px;padding:8px;margin:0 0 9px;text-align:center}
-.sheet .sec{background:#00452e;color:#fff;text-align:left;font-size:12px}
-.sheet .cod{width:36px;text-align:center;font-weight:bold}
-.sheet .mk{text-align:center;font-weight:bold}
-.sheet .hd th{background:#dedede;font-size:10px}
-.sheet .id td{font-size:11px}.sheet .id b{display:block;font-size:9px;color:#555;font-weight:normal}
-.sheet .box{border:.8px solid #777;padding:7px 9px;margin-top:9px;font-size:11px}
-.sheet .box b{font-size:9px;color:#555;font-weight:normal;display:block;margin-bottom:3px}
-.sheet .res{border:1px solid #000;padding:9px;margin-top:9px;text-align:center;font-weight:bold;font-size:14px}
-.sheet .ass{display:flex;gap:24px;margin-top:28px}
-.sheet .ass div{flex:1;border-top:1px solid #000;padding-top:5px;font-size:10px;text-align:center}
-.sheet .ass b{display:block;font-size:11px}
-.sheet .ev h2{font-size:13px;margin:0 0 9px}
-.sheet .ev .g{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
-.sheet .ev figure{margin:0;border:.8px solid #777;padding:5px}
-.sheet .ev img{width:100%;height:auto;display:block}
-.sheet .ev figcaption{font-size:9px;margin-top:4px}
+.sheet th,.sheet td{padding:6px 8px;text-align:left;vertical-align:top;border-bottom:1px solid #d9dde2}
+.sheet th{font-size:9px;text-transform:uppercase;letter-spacing:.4px;color:#555;border-bottom:1.5px solid #00452e}
+.sheet tr{break-inside:avoid}
+.sheet .l-top{display:flex;align-items:center;gap:14px;border-bottom:3px solid #00452e;padding-bottom:8px;margin-bottom:14px}
+.sheet .l-top img{height:60px;width:auto}
+.sheet .l-top .t{flex:1;text-align:right}
+.sheet .l-top .t b{display:block;font-size:18px;color:#00452e;letter-spacing:.5px}
+.sheet .l-top .t span{font-size:12px;color:#333;font-weight:bold}
+.sheet .l-dados{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid #c9ced6;border-radius:6px;margin-bottom:14px}
+.sheet .l-dados div{padding:6px 10px;font-size:12px;min-width:0}
+.sheet .l-dados .w2{grid-column:span 2}.sheet .l-dados .w4{grid-column:span 4;border-top:1px solid #e3e6ea}
+.sheet small.r{display:block;font-size:8.5px;text-transform:uppercase;letter-spacing:.3px;color:#666}
+.sheet h2{font-size:12px;color:#00452e;margin:16px 0 6px;text-transform:uppercase;letter-spacing:.4px;break-after:avoid}
+.sheet .l-junto{break-inside:avoid}
+.sheet .l-st{display:inline-block;padding:2px 9px;border-radius:999px;font-size:10px;font-weight:bold;border:1px solid;white-space:nowrap}
+.sheet .l-ok{color:#1b7f4b;background:#e4f4ea}.sheet .l-nc{color:#bd2b21;background:#fbe7e5}
+.sheet .l-fa{color:#8a5a10;background:#fdf3e0}.sheet .l-na{color:#6b7280;background:#eef0f3}
+.sheet .l-cont{display:flex;gap:8px;margin-bottom:12px}
+.sheet .l-cont div{flex:1;border:1px solid #c9ced6;border-radius:6px;padding:7px 6px;text-align:center;font-size:10px;color:#444}
+.sheet .l-cont b{display:block;font-size:20px;line-height:1.15;color:#111}
+.sheet .l-concl{border:1px solid #c9ced6;border-left:5px solid #00452e;border-radius:6px;padding:9px 12px;margin-top:14px;font-size:12px;break-inside:avoid}
+.sheet .l-concl.al{border-left-color:#bd2b21}
+.sheet .l-valv{break-before:page;margin-top:26px}
+.sheet .l-vh{display:flex;align-items:flex-end;gap:10px;border-bottom:2px solid #00452e;padding-bottom:6px}
+.sheet .l-vh .g{flex:1}
+.sheet .l-vh .g b{display:block;font-size:16px}
+.sheet .l-vh .g span{font-size:11.5px;color:#333}
+.sheet .l-os{font-size:9px;color:#666;margin:3px 0 0}
+.sheet .l-cond{border:1.5px solid #bd2b21;background:#fbe7e5;border-radius:6px;padding:8px 11px;margin-top:10px;break-inside:avoid}
+.sheet .l-cond b{color:#bd2b21}
+.sheet .l-ncard{border:1px solid #d9a5a0;border-left:5px solid #bd2b21;border-radius:6px;padding:8px 11px;margin-top:8px;break-inside:avoid}
+.sheet .l-ncard .h{display:flex;gap:8px;align-items:center;margin-bottom:3px}
+.sheet .l-ncard .h b{flex:1;font-size:12.5px}
+.sheet .l-fotos{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:7px}
+.sheet .l-fotos figure{margin:0;break-inside:avoid}
+.sheet .l-fotos img{width:100%;height:auto;display:block;border:1px solid #aaa;border-radius:4px}
+.sheet .l-fotos figcaption{font-size:8.5px;color:#555;margin-top:2px}
+.sheet .l-proc{columns:2;column-gap:22px;margin:0;padding-left:20px;font-size:10.5px;color:#222}
+.sheet .l-proc li{break-inside:avoid;margin-bottom:2px}
+.sheet .l-nota{font-size:10px;color:#555;margin:4px 0 0}
+.sheet .l-ass{display:flex;gap:28px;margin-top:44px;break-inside:avoid}
+.sheet .l-ass div{flex:1;border-top:1px solid #000;padding-top:5px;font-size:10px;text-align:center}
+.sheet .l-ass b{display:block;font-size:11.5px}
+.sheet .num{text-align:right;white-space:nowrap}
+.sheet .l-total td{border-top:1.5px solid #00452e;border-bottom:0;font-weight:bold;font-size:13px}
 @media print{
   body.printing>*:not(.sheetwrap){display:none!important}
   .sheettop{display:none!important}
   .sheetwrap{position:static;overflow:visible}
-  .sheet{padding:0;max-width:none;font-size:10.5px}
-  .sheet .ev{page-break-before:always}
-  @page{size:A4;margin:12mm}
+  .sheet{padding:0;max-width:none;font-size:11px}
+  .sheet .l-valv{margin-top:0}
+  @page{size:A4;margin:12mm 12mm 15mm;
+    @bottom-left{content:"New Válvulas";font:8px Arial,sans-serif;color:#666}
+    @bottom-right{content:"Página " counter(page) " de " counter(pages);font:8px Arial,sans-serif;color:#666}}
 }
 </style>
 <link rel="apple-touch-icon" href="logo.png"><link rel="icon" type="image/png" href="logo.png"><link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22New%20V%C3%A1lvulas%22%2C%22short_name%22%3A%22New%20V%C3%A1lvulas%22%2C%22start_url%22%3A%22https%3A%2F%2Frafaelspada13-hub.github.io%2Faplicativo-de-inspe-o%2Finspecao_valvulas_v2.html%22%2C%22scope%22%3A%22https%3A%2F%2Frafaelspada13-hub.github.io%2Faplicativo-de-inspe-o%2F%22%2C%22display%22%3A%22standalone%22%2C%22orientation%22%3A%22portrait%22%2C%22background_color%22%3A%22%23ffffff%22%2C%22theme_color%22%3A%22%232b2b2b%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Frafaelspada13-hub.github.io%2Faplicativo-de-inspe-o%2Flogo.png%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fpng%22%2C%22purpose%22%3A%22any%22%7D%2C%7B%22src%22%3A%22https%3A%2F%2Frafaelspada13-hub.github.io%2Faplicativo-de-inspe-o%2Flogo.png%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fpng%22%2C%22purpose%22%3A%22any%22%7D%5D%7D"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="New Válvulas">
@@ -1279,77 +1309,111 @@ function janela(html){
   window.scrollTo(0,0);
 }
 
+/* ---- peças comuns do laudo e da proposta (documentos que vão para o cliente) */
+function docTopo(titulo){ return `<div class="l-top"><img src="logo.png" alt=""><div class="t"><b>NEW VÁLVULAS</b><span>${titulo}</span></div></div>`; }
+function docCliente(c,extra){ const end=[c.endereco,[c.municipio,c.uf].filter(Boolean).join("/")].filter(Boolean).join(" — ");
+  return `<div class="l-dados">
+    <div class="w2"><small class="r">Cliente</small>${esc(c.nome)||"—"}</div>
+    <div><small class="r">CNPJ</small>${esc(c.cnpj)||"—"}</div>
+    <div><small class="r">Ordem de serviço</small><b>${esc(OS.numero)}</b></div>
+    ${end||extra?`<div class="w4" style="display:flex;gap:18px"><span style="flex:1">${end?`<small class="r">Endereço</small>${esc(end)}`:""}</span>${extra||""}</div>`:""}
+  </div>`; }
+const ROT_AVAL={ok:["l-ok","Conforme"],nc:["l-nc","Não conforme"],na:["l-na","Não se aplica"],falta:["l-fa","Faltante"]};
+function selo(cls,txt){ return `<span class="l-st ${cls}">${txt}</span>`; }
+function statusValv(v){ // situação de uma válvula em linguagem de cliente
+  if(v.condenada) return ["l-nc","Condenada"];
+  if(valvulaTemNC(v)) return ["l-nc","Não conforme"];
+  if(valvulaTemFalta(v)) return ["l-fa","Item faltante"];
+  return ["l-ok","Conforme"]; }
+function nomeValv(v){ const f=fabricantes.find(x=>x.id===v.fabId)||{};
+  return {tipo:[v.tipo?TIPOS[v.tipo].nome:"",v.bitola?v.bitola+'"':""].filter(Boolean).join(" "),
+          marca:[f.nome,v.modelo].filter(Boolean).map(esc).join(" ")}; }
+function gradeFotos(fotos,rot){ return fotos&&fotos.length?`<div class="l-fotos">`+fotos.map((ft,n)=>
+  `<figure><img src="${ft}" alt=""><figcaption>${rot} — foto ${n+1}</figcaption></figure>`).join("")+`</div>`:""; }
+
 function pdfLaudo(){
   const c=clientes.find(x=>x.id===OS.clienteId)||{};
-  const mk=v=>v==="ok"?"X":v==="nc"?"NC":v==="na"?"–":v==="falta"?"FALTANTE":"";
-  const s=situacaoOS(OS);
-  const capa=`<div style='display:flex;align-items:center;gap:14px;border-bottom:3px solid #00452e;padding-bottom:8px;margin-bottom:12px'><img src='logo.png' style='height:64px;width:auto'><div style='flex:1;text-align:right'><div style='font-size:18px;font-weight:bold;color:#00452e;letter-spacing:.5px'>NEW VÁLVULAS</div><div style='font-size:12.5px;color:#333;font-weight:bold'>LAUDO DE INSPEÇÃO DE MANUTENÇÃO</div></div></div>
-    <table class="id">
-      <tr><td><b>Ordem de serviço</b>${esc(OS.numero)}</td><td><b>Data</b>${esc(OS.data)}</td>
-          <td><b>Válvulas</b>${OS.valvulas.length}</td></tr>
-      <tr><td colspan="2"><b>Cliente</b>${esc(c.nome)}</td><td><b>CNPJ</b>${esc(c.cnpj)}</td></tr>
-      <tr><td colspan="3"><b>Endereço</b>${esc([c.endereco,[c.municipio,c.uf].filter(Boolean).join("/")].filter(Boolean).join(" — "))}</td></tr>
-    </table>
-    <table style="margin-top:8px"><tr class="hd"><th>Item</th><th>TAG</th><th>Válvula</th><th>Fabricante e modelo</th><th>Resultado</th></tr>`+
-    OS.valvulas.map(v=>{ const f=fabricantes.find(x=>x.id===v.fabId)||{};
-      return `<tr><td class="cod">${v.item}</td><td>${esc(v.tag)}</td>
-        <td>${v.tipo?TIPOS[v.tipo].nome:""} ${v.bitola?v.bitola+'"':""}</td>
-        <td>${esc(f.nome)} ${esc(v.modelo)}</td>
-        <td class="mk">${v.condenada?"CONDENADA":resultadoValv(v)}</td></tr>`; }).join("")+`</table>
-    <div class="res">${s}</div>
-    <div class="ass"><div><b>${esc(OS.a1)||"&nbsp;"}</b>Responsável pela inspeção · ${esc(OS.d1||OS.data)}</div></div>`;
+  const vs=OS.valvulas, pl=(n,s,p)=>n+" "+(n===1?s:p);
+  const nCond=vs.filter(v=>v.condenada).length;
+  const nNC=vs.filter(v=>!v.condenada&&valvulaTemNC(v)).length;
+  const nFa=vs.filter(v=>!v.condenada&&!valvulaTemNC(v)&&valvulaTemFalta(v)).length;
+  const nOk=vs.length-nCond-nNC-nFa;
 
-  const paginas=OS.valvulas.map(v=>{
-    const f=fabricantes.find(x=>x.id===v.fabId)||{};
-    const evG=((v.fotos||[]).length)?`<h3 style="font-size:11px;margin:12px 0 5px">Fotos da válvula</h3><div class="g">`+(v.fotos||[]).map((ft,n)=>`<figure><img src="${ft}"><figcaption>foto ${n+1}</figcaption></figure>`).join("")+`</div>`:"";
-    const condBox=v.condenada?`<div class="box" style="border:2px solid #b00020;background:#fbeaea;margin-top:10px"><b style="color:#b00020">VÁLVULA CONDENADA</b> ${esc(v.condenadaMotivo)||"Válvula considerada inviável para recuperação."}</div>`:"";
-    const proc=itens("proc",v).map((t,i)=>`<tr><td class="cod">E-${i+1}</td><td>${t}</td><td class="mk">a executar</td></tr>`).join("");
-    const aval=itens("aval",v).map((t,i)=>{const k="aval-"+i;
-      if(v.condenada && v.m1[k]!=="nc" && v.m1[k]!=="falta") return "";
-      return `<tr><td class="cod">A-${i+1}</td><td>${t}</td><td class="mk">${mk(v.m1[k])}</td></tr>`;}).join("");
-    const ncs=chavesAval(v).filter(k=>v.m1[k]==="nc");
-    const ncTxt=ncs.length?ncs.map(k=>{const d=v.nc[k]||{};
-      return `A-${+k.split("-")[1]+1} ${textoItem(k,v)} — ${d.destino==="substituicao"?"não recuperável":"recuperação"}: ${esc(d.rec)}`;
-    }).join("<br>"):"nenhuma registrada";
-    const ev=ncs.filter(k=>((v.nc[k]||{}).fotos||[]).length).map(k=>{const d=v.nc[k];
-      return `<h3 style="font-size:11px;margin:12px 0 5px">A-${+k.split("-")[1]+1} · ${textoItem(k,v)}</h3>
-        <div class="g">`+d.fotos.map((ft,n)=>`<figure><img src="${ft}"><figcaption>foto ${n+1}</figcaption></figure>`).join("")+`</div>`;
-    }).join("");
-    return `<div class="ev"><h2>Item ${v.item} — ${esc(v.tag)}</h2>
-      <table class="id">
-        <tr><td><b>Tipo</b>${v.tipo?TIPOS[v.tipo].nome:""}</td><td><b>Fabricante</b>${esc(f.nome)}</td>
-            <td><b>Modelo</b>${esc(v.modelo)}</td><td><b>Bitola</b>${v.bitola?v.bitola+'"':""}</td></tr>
-        <tr><td><b>Mecânico</b>${esc(v.montador)}</td><td><b>Pintor</b>${esc(v.pintor)}</td>
-            <td colspan="2"><b>Vídeo do teste</b>${esc(v.video)||"não informado"}</td></tr>
-      </table>${condBox}
-      <table style="margin-top:8px"><tr class="hd"><th colspan="2">Item verificado</th><th style="width:78px">Resultado</th></tr>
-        ${v.condenada?"":`<tr><th colspan="3" class="sec">Processo padrão a executar</th></tr>${proc}`}
-        ${aval?`<tr><th colspan="3" class="sec">${v.condenada?"Componentes com problema":"Avaliação dos componentes"}</th></tr>${aval}`:""}</table>
-      <div class="box"><b>Não conformidades e recomendação</b>${ncTxt}</div>
-      ${ev}${evG}</div>`;
+  const achados=v=>{ const ks=chavesAval(v), nome=k=>textoItem(k,v);
+    const nc=ks.filter(k=>v.m1[k]==="nc").map(nome), fa=ks.filter(k=>v.m1[k]==="falta").map(nome), out=[];
+    if(v.condenada) out.push(esc(v.condenadaMotivo)||"Inviável para recuperação");
+    if(nc.length) out.push("Não conforme: "+nc.join(", "));
+    if(fa.length) out.push("Faltante: "+fa.join(", "));
+    return out.join("<br>")||"Sem não conformidades"; };
+
+  const partes=[];
+  if(nNC) partes.push(pl(nNC,"válvula apresentou","válvulas apresentaram")+" componentes não conformes");
+  if(nFa) partes.push(pl(nFa,"válvula foi recebida","válvulas foram recebidas")+" com item faltante");
+  if(nCond) partes.push(pl(nCond,"válvula foi condenada","válvulas foram condenadas"));
+  const concl=partes.length
+    ?`<b>Conclusão:</b> das ${vs.length} válvulas inspecionadas, ${partes.join("; ")}. O detalhamento, com fotos e recomendação, está nas páginas seguintes.`+
+      (vs.some(valvulaTemNC)?" Os serviços adicionais à manutenção padrão são apresentados em proposta de aditivo.":"")
+    :`<b>Conclusão:</b> ${vs.length===1?"a válvula inspecionada está conforme e segue":"todas as "+vs.length+" válvulas inspecionadas estão conformes e seguem"} para a manutenção padrão.`;
+
+  const capa=docTopo("LAUDO DE INSPEÇÃO DE MANUTENÇÃO")+docCliente(c,`<span><small class="r">Data</small>${esc(OS.data)}</span>`)+
+    `<div class="l-cont">
+      <div><b>${vs.length}</b>${vs.length===1?"válvula inspecionada":"válvulas inspecionadas"}</div>
+      <div><b style="color:#1b7f4b">${nOk}</b>${nOk===1?"conforme":"conformes"}</div>
+      <div><b style="color:#bd2b21">${nNC}</b>com não conformidade</div>
+      ${nFa?`<div><b style="color:#8a5a10">${nFa}</b>com item faltante</div>`:""}
+      ${nCond?`<div><b style="color:#bd2b21">${nCond}</b>${nCond===1?"condenada":"condenadas"}</div>`:""}
+    </div>
+    <h2>Resumo das válvulas</h2>
+    <table><tr><th style="width:34px">Item</th><th>TAG</th><th>Válvula</th><th>Situação</th><th>O que foi encontrado</th></tr>`+
+    vs.map(v=>{ const n=nomeValv(v), st=statusValv(v);
+      return `<tr><td><b>${v.item}</b></td><td><b>${esc(v.tag)}</b></td>
+        <td>${n.tipo}${n.marca?`<br><span style="color:#555;font-size:10px">${n.marca}</span>`:""}</td>
+        <td>${selo(st[0],st[1])}</td><td>${achados(v)}</td></tr>`; }).join("")+`</table>
+    <div class="l-concl${partes.length?" al":""}">${concl}</div>
+    <div class="l-ass"><div><b>${esc(OS.a1)||"&nbsp;"}</b>Responsável pela inspeção · ${esc(OS.d1||OS.data)}</div><div><b>&nbsp;</b>Ciente do cliente</div></div>`;
+
+  const paginas=vs.map(v=>{
+    const n=nomeValv(v), st=statusValv(v), ks=chavesAval(v);
+    const ncs=ks.filter(k=>v.m1[k]==="nc");
+    const linhas=ks.map((k,i)=>{ if(v.condenada && v.m1[k]!=="nc" && v.m1[k]!=="falta") return "";
+      const r=ROT_AVAL[v.m1[k]]||["l-na","Não avaliado"];
+      return `<tr><td>${textoItem(k,v)}</td><td style="width:110px">${selo(r[0],r[1])}</td></tr>`; }).join("");
+    const cartoes=ncs.map(k=>{ const d=v.nc[k]||{};
+      return `<div class="l-ncard"><div class="h"><b>${textoItem(k,v)}</b>${selo("l-nc",d.destino==="substituicao"?"Substituir":"Recuperar")}</div>
+        <div><small class="r">Recomendação</small>${esc(d.rec)||"—"}</div>${gradeFotos(d.fotos,textoItem(k,v))}</div>`; }).join("");
+    const exec=[v.montador&&"Mecânico: "+esc(v.montador),v.pintor&&"Pintor: "+esc(v.pintor),v.video&&"Vídeo do teste: "+esc(v.video)].filter(Boolean).join(" · ");
+    return `<div class="l-valv">
+      <div class="l-vh"><div class="g"><b>Item ${v.item} · ${esc(v.tag)}</b><span>${[n.tipo,n.marca].filter(Boolean).join(" · ")}</span></div>${selo(st[0],st[1])}</div>
+      <p class="l-os">Ordem de serviço ${esc(OS.numero)} · ${esc(c.nome)}</p>
+      ${v.condenada?`<div class="l-cond"><b>VÁLVULA CONDENADA.</b> ${esc(v.condenadaMotivo)||"Válvula considerada inviável para recuperação."}</div>`:""}
+      ${linhas?`<h2>${v.condenada?"Componentes com problema":"Avaliação dos componentes"}</h2>
+        <table><tr><th>Componente</th><th>Situação</th></tr>${linhas}</table>`:""}
+      ${cartoes?`<h2>Não conformidades encontradas</h2>${cartoes}`:""}
+      ${v.condenada?"":`<div class="l-junto"><h2>Manutenção padrão prevista</h2>
+        <ol class="l-proc">${itens("proc",v).map(t=>`<li>${t}</li>`).join("")}</ol></div>`}
+      ${(v.fotos||[]).length?`<div class="l-junto"><h2>Fotos da válvula</h2>${gradeFotos(v.fotos,"Item "+v.item)}</div>`:""}
+      ${exec?`<p class="l-nota" style="margin-top:12px">${exec}</p>`:""}</div>`;
   }).join("");
 
-  janela(capa+paginas+`<p style="font-size:8px;color:#555;margin-top:10px">X = conforme · NC = não conforme · – = não aplicável · FALTANTE = item não recebido.</p>`);
+  janela(capa+paginas);
 }
 
 function pdfProposta(){
   const c=clientes.find(x=>x.id===OS.clienteId)||{};
   const inc=aditivosOS(OS).filter(a=>a.p.inc);
   const T=totaisOS(OS);
-  const linhas=inc.map((a,n)=>`<tr><td class="cod">${n+1}</td>
-    <td>${esc(a.p.desc)||a.texto}<br><span style="font-size:9px;color:#555">Item ${a.v.item} · TAG ${esc(a.v.tag)} · ${a.texto} não conforme</span></td>
-    <td style="text-align:right;white-space:nowrap">${brl(a.p.preco)}</td></tr>`).join("");
-  janela(`<div style='display:flex;align-items:center;gap:14px;border-bottom:3px solid #00452e;padding-bottom:8px;margin-bottom:12px'><img src='logo.png' style='height:64px;width:auto'><div style='flex:1;text-align:right'><div style='font-size:18px;font-weight:bold;color:#00452e;letter-spacing:.5px'>NEW VÁLVULAS</div><div style='font-size:12.5px;color:#333;font-weight:bold'>PROPOSTA DE ADITIVO</div></div></div>
-    <table class="id">
-      <tr><td><b>Cliente</b>${esc(c.nome)}</td><td><b>CNPJ</b>${esc(c.cnpj)}</td><td><b>Ordem de serviço</b>${esc(OS.numero)}</td></tr>
-      <tr><td colspan="2"><b>Endereço</b>${esc([c.endereco,[c.municipio,c.uf].filter(Boolean).join("/")].filter(Boolean).join(" — "))}</td>
-          <td><b>Contato</b>${esc(c.telefone||c.email||"")}</td></tr>
-    </table>
-    <table style="margin-top:8px"><tr class="hd"><th colspan="2">Serviço ou peça</th><th style="width:96px">Valor</th></tr>${linhas}
-      <tr><td colspan="2" style="text-align:right;font-weight:bold">Total</td>
-          <td style="text-align:right;font-weight:bold">${brl(T.preco)}</td></tr></table>
-    <div class="box"><b>Observação</b>Valores referentes somente aos componentes não conformes encontrados na inspeção das válvulas desta OS, adicionais à manutenção padrão contratada. Prazo e condições a combinar.</div>
-    <div class="ass"><div><b>&nbsp;</b>New Válvulas · ${esc(OS.data)}</div><div><b>&nbsp;</b>Aceite do cliente</div></div>`);
+  const contato=c.telefone||c.email;
+  const linhas=inc.map((a,n)=>{ const d=(a.v.nc[a.k]||{}), nv=nomeValv(a.v);
+    return `<tr><td><b>${n+1}</b></td>
+    <td><b>${esc(a.p.desc)||a.texto}</b><br><span style="font-size:10px;color:#555">Item ${a.v.item} · TAG ${esc(a.v.tag)}${nv.tipo?" · "+nv.tipo:""} · ${a.texto} não conforme (${d.destino==="substituicao"?"substituir":"recuperar"})</span></td>
+    <td class="num">${brl(a.p.preco)}</td></tr>`; }).join("");
+  janela(docTopo("PROPOSTA DE ADITIVO")+
+    docCliente(c,`${contato?`<span><small class="r">Contato</small>${esc(contato)}</span>`:""}<span><small class="r">Data</small>${esc(hoje())}</span>`)+
+    `<p style="margin:0 0 10px">Durante a inspeção das válvulas desta ordem de serviço foram encontrados componentes não conformes, descritos no laudo de inspeção. Segue a proposta para os serviços adicionais à manutenção padrão contratada.</p>
+    <table><tr><th style="width:34px">Nº</th><th>Serviço ou peça</th><th class="num" style="width:110px">Valor</th></tr>${linhas}
+      <tr class="l-total"><td colspan="2" class="num">Total do aditivo</td><td class="num">${brl(T.preco)}</td></tr></table>
+    <div class="l-concl"><b>Observação:</b> valores referentes somente aos componentes não conformes encontrados na inspeção, adicionais à manutenção padrão contratada. Prazo e condições a combinar.</div>
+    <div class="l-ass"><div><b>New Válvulas</b>${esc(hoje())}</div><div><b>&nbsp;</b>Aceite do cliente</div></div>`);
 }
 
 /* ============================================================ NUVEM (Supabase) */
