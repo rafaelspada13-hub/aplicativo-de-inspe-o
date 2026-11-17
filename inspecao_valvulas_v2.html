@@ -3,7 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#2b2b2b">
+<meta name="theme-color" content="#00452e">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <title>New Válvulas — Inspeção de manutenção</title>
 
 <style>
@@ -175,15 +177,97 @@ body.comAbas{padding-bottom:210px}
     @bottom-right{content:"Página " counter(page) " de " counter(pages);font:8px Arial,sans-serif;color:#666}}
 }
 </style>
-<link rel="apple-touch-icon" href="logo.png"><link rel="icon" type="image/png" href="logo.png"><link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22New%20V%C3%A1lvulas%22%2C%22short_name%22%3A%22New%20V%C3%A1lvulas%22%2C%22start_url%22%3A%22https%3A%2F%2Frafaelspada13-hub.github.io%2Faplicativo-de-inspe-o%2Finspecao_valvulas_v2.html%22%2C%22scope%22%3A%22https%3A%2F%2Frafaelspada13-hub.github.io%2Faplicativo-de-inspe-o%2F%22%2C%22display%22%3A%22standalone%22%2C%22orientation%22%3A%22portrait%22%2C%22background_color%22%3A%22%23ffffff%22%2C%22theme_color%22%3A%22%232b2b2b%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Frafaelspada13-hub.github.io%2Faplicativo-de-inspe-o%2Flogo.png%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fpng%22%2C%22purpose%22%3A%22any%22%7D%2C%7B%22src%22%3A%22https%3A%2F%2Frafaelspada13-hub.github.io%2Faplicativo-de-inspe-o%2Flogo.png%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fpng%22%2C%22purpose%22%3A%22any%22%7D%5D%7D"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="New Válvulas">
+<link rel="apple-touch-icon" href="logo.png"><link rel="icon" type="image/png" href="logo.png"><link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22New%20V%C3%A1lvulas%22%2C%22short_name%22%3A%22New%20V%C3%A1lvulas%22%2C%22start_url%22%3A%22https%3A%2F%2Frafaelspada13-hub.github.io%2Faplicativo-de-inspe-o%2Finspecao_valvulas_v2.html%22%2C%22scope%22%3A%22https%3A%2F%2Frafaelspada13-hub.github.io%2Faplicativo-de-inspe-o%2F%22%2C%22display%22%3A%22standalone%22%2C%22orientation%22%3A%22portrait%22%2C%22background_color%22%3A%22%23ffffff%22%2C%22theme_color%22%3A%22%2300452e%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Frafaelspada13-hub.github.io%2Faplicativo-de-inspe-o%2Flogo.png%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fpng%22%2C%22purpose%22%3A%22any%22%7D%2C%7B%22src%22%3A%22https%3A%2F%2Frafaelspada13-hub.github.io%2Faplicativo-de-inspe-o%2Flogo.png%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fpng%22%2C%22purpose%22%3A%22any%22%7D%5D%7D"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="New Válvulas">
+<style id="visual2">
+/* ====== visual 2026-11: identidade New Válvulas (sobrepõe as regras acima) ====== */
+:root{--navy:#00452e;--paper:#F3F5F4;--rule:#E2E7E5;--ink:#101716;--steel:#4A5A55;
+  --ok:#1B7F4B;--okbg:#E3F3EA;--nc:#B42318;--ncbg:#FBE6E3;--amber:#8A4B08;--amberbg:#FDF0DD;--na:#5B6B66;--nabg:#EEF1F0;
+  --sombra:0 6px 18px rgba(0,40,26,.08);--titulo:"Space Grotesk",Inter,system-ui,sans-serif}
+body{font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--paper);color:var(--ink)}
+.bar{background:var(--navy);gap:12px;padding:14px 16px;padding-top:calc(14px + env(safe-area-inset-top,0))}
+.bar h1{font-family:var(--titulo);font-size:19px;font-weight:700;letter-spacing:.2px}
+.bar .sub{font-family:Inter,sans-serif;color:#CFE3D8;opacity:1;font-size:12.5px;font-weight:400;margin-top:3px}
+.bar .logo{width:42px;height:42px;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;flex:none}
+.bar .logo img{width:32px;height:32px;object-fit:contain}
+.back{width:42px;height:42px;border-radius:12px;font-size:26px;line-height:1;flex:none;background:rgba(255,255,255,.14)}
+.syncst{padding:7px 11px;font-size:11.5px}
+.steps{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px;background:var(--navy);padding:0 16px 12px;position:sticky;top:0;z-index:29}
+.steps i{display:block;height:5px;border-radius:999px;background:rgba(255,255,255,.22)}
+.steps i.f{background:#7BE0A6}.steps i.a{background:#fff}
+.prog{display:none!important}
+.wrap{padding:16px}
+h2{font-size:11.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--steel);margin:22px 4px 10px}
+.card,.list,.big{border:0;border-radius:18px;box-shadow:var(--sombra)}
+.card+.card{margin-top:12px}
+.row{padding:14px 16px;border-bottom:1px solid #EEF1F0}
+.row b{font-size:15.5px}
+.pill{font-size:11.5px;padding:5px 10px}
+.p-and{background:var(--amberbg);color:var(--amber)}
+.btn{border-radius:16px;min-height:54px;font-size:16px}
+.btn.primary{box-shadow:0 10px 22px rgba(0,69,46,.25)}
+.btn.ghost{border:1.5px solid #D5DDDA}
+.dock{background:rgba(243,245,244,.97);border-top:1px solid var(--rule)}
+.tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;padding:8px 6px calc(10px + env(safe-area-inset-bottom,0));border-top:1px solid var(--rule)}
+.tabs button{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10.5px;color:#5B6B66;border-radius:12px;padding:6px 0;min-height:50px}
+.tabs button[aria-pressed="true"]{color:var(--navy);background:#E3F0EA}
+.tabs svg{width:22px;height:22px}
+.dock.acima{bottom:68px}
+.tile{border:0;border-radius:16px;box-shadow:var(--sombra);min-height:80px;padding:14px}
+.tile[aria-pressed="true"]{box-shadow:inset 0 0 0 2px var(--navy),var(--sombra)}
+.item{padding:14px 16px;border-bottom:1px solid #EEF1F0}
+.item .txt{font-size:16px;font-weight:600;margin:3px 0 10px}
+.aval-hd{display:flex;align-items:center;gap:8px}.aval-hd .txt{flex:1;margin:0}
+.aval-hd .st{font-size:11.5px;font-weight:700;padding:4px 9px;border-radius:999px;white-space:nowrap;background:var(--nabg);color:var(--steel)}
+.aval-hd .st.ok{background:var(--okbg);color:var(--ok)}.aval-hd .st.nc{background:var(--ncbg);color:var(--nc)}
+.aval-hd .st.na{background:var(--nabg);color:var(--na)}.aval-hd .st.falta{background:var(--amberbg);color:var(--amber)}
+.marks{gap:8px;margin-top:10px}
+.mk{min-height:66px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;font-size:12px;padding:6px 2px}
+.mk svg{width:21px;height:21px}
+.mk[data-v="falta"][aria-pressed="true"]{color:var(--amber);border-color:var(--amber)}
+.hero{background:var(--navy);color:#fff;margin:-16px -16px 0;padding:4px 20px 60px}
+.hero small{font-size:13px;color:#CFE3D8}
+.hero h3{margin:4px 0 0;font-family:var(--titulo);font-size:25px;font-weight:600;line-height:1.15}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:-44px;position:relative}
+.kpi{background:#fff;border-radius:16px;padding:14px 12px;box-shadow:var(--sombra);display:flex;flex-direction:column;gap:4px}
+.kpi b{font-family:var(--titulo);font-size:28px;font-weight:700;color:var(--ink)}
+.kpi span{font-size:12px;color:var(--steel);line-height:1.25}
+.painel{background:#fff;border-radius:18px;padding:16px;box-shadow:var(--sombra);display:flex;flex-direction:column;gap:12px;margin-top:14px}
+.painel .rot{font-size:11.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--steel)}
+.oscard{display:flex;flex-direction:column;gap:12px;background:#fff;border:0;border-radius:18px;padding:16px;box-shadow:var(--sombra);width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer}
+.oscard+.oscard{margin-top:12px}
+.oscard .topo{display:flex;align-items:flex-start;gap:10px}
+.oscard .n{font-family:var(--titulo);font-size:21px;font-weight:700;display:block}
+.oscard .meta{font-size:13px;color:var(--steel);display:block;margin-top:3px}
+.selo{font-size:11.5px;font-weight:700;padding:5px 10px;border-radius:999px;white-space:nowrap;margin-left:auto}
+.selo.concluida{background:var(--okbg);color:var(--ok)}.selo.aditivo{background:var(--amberbg);color:var(--amber)}.selo.andamento{background:#E6EEF7;color:#1F4E79}.selo.vazia{background:var(--nabg);color:var(--na)}
+.blocos{display:flex;gap:3px}.blocos i{flex:1 1 0;height:10px;border-radius:3px}
+.leg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:var(--steel)}
+.leg span{display:flex;align-items:center;gap:6px}.leg i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.pills{display:flex;gap:8px;overflow-x:auto;margin:0 -16px 12px;padding:2px 16px;scrollbar-width:none}
+.pills button{border:0;font:600 13px Inter,sans-serif;padding:0 14px;min-height:38px;border-radius:999px;background:#fff;color:#33433E;box-shadow:inset 0 0 0 1px #D5DDDA;white-space:nowrap;cursor:pointer}
+.pills button[aria-pressed="true"]{background:var(--navy);color:#fff;box-shadow:none}
+.busca{display:flex;align-items:center;gap:10px;background:#fff;border-radius:14px;padding:0 14px;min-height:50px;box-shadow:var(--sombra);margin-bottom:12px}
+.busca input{border:0;outline:0;flex:1;font:15px Inter,sans-serif;min-width:0;background:transparent;color:var(--ink)}
+.fab{position:fixed;right:18px;bottom:calc(86px + env(safe-area-inset-bottom,0));width:60px;height:60px;border-radius:20px;background:var(--navy);color:#fff;border:0;box-shadow:0 12px 24px rgba(0,69,46,.35);display:flex;align-items:center;justify-content:center;z-index:31;cursor:pointer}
+.rank{display:grid;grid-template-columns:110px minmax(0,1fr) 28px;gap:10px;align-items:center;font-size:13.5px}
+.rank .t{height:10px;background:#EEF1F0;border-radius:999px;overflow:hidden}.rank .t i{display:block;height:100%;border-radius:999px;background:#E08A7F}
+.rank:first-of-type .t i{background:var(--nc)}
+.rank b{text-align:right;font-variant-numeric:tabular-nums}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:#E4E9E7;border-radius:12px;padding:4px;margin-bottom:14px}
+.seg button{border:0;background:none;font:600 14px Inter,sans-serif;min-height:42px;border-radius:9px;color:#33433E;cursor:pointer}
+.seg button[aria-pressed="true"]{background:#fff;color:var(--navy);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.empty{padding:40px 20px}
+</style>
 </head>
 <body>
 
 <div class="bar">
-  <button class="back" id="back" style="display:none">‹</button>
+  <button class="back" id="back" style="display:none" aria-label="Voltar">‹</button>
+  <span class="logo" id="logo"><img src="logo.png" alt="New Válvulas"></span>
   <h1 id="ttl">Ordens de serviço<span class="sub" id="sub">New Válvulas</span></h1>
   <span class="syncst off" id="syncStatus">•</span>
 </div>
+<div class="steps" id="steps" style="display:none" aria-hidden="true"></div>
 <div class="prog" id="pw" style="display:none"><i id="pb"></i></div>
 <div class="wrap" id="app"></div>
 <div class="dock" id="dock" style="display:none"><div class="in" id="dockIn"></div></div>
@@ -290,7 +374,7 @@ const TAXAS_PADRAO=[
 let cfg={taxas:JSON.parse(JSON.stringify(TAXAS_PADRAO))};
 let clientes=[],fabricantes=[],indice=[];
 let OS=null, V=null;                       // OS aberta e válvula aberta
-let aba="os", tela="lista", etapa=0, filtro="", ctxCliente=null, ctxFab=null;
+let aba="inicio", cadKind="cli", osFiltro="todas", tela="lista", etapa=0, filtro="", ctxCliente=null, ctxFab=null;
 const ETAPAS=["tipo","dados","proc","aval","nc","resumo"];
 
 const uid=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
@@ -326,6 +410,9 @@ function valvulaTemFalta(v){ return chavesAval(v).some(k=>v.m1[k]==="falta"); }
 function resultadoValv(v){ const nc=valvulaTemNC(v),fa=valvulaTemFalta(v);
   return nc&&fa?"com não conformidade e faltante":nc?"com não conformidade":fa?"com item faltante":"conforme"; }
 
+function blocoValv(v){ return v.condenada?"c":!v.tipo||!valvulaCompleta(v)?"i":valvulaTemNC(v)?"n":valvulaTemFalta(v)?"f":"o"; }
+function metaOS(o){ return {id:o.id,numero:o.numero,clienteId:o.clienteId,data:o.data,
+  qtd:(o.valvulas||[]).length,situacao:situacaoOS(o),criado:o.criado,bl:(o.valvulas||[]).map(blocoValv).join("")}; }
 function situacaoOS(o){
   if(!o.valvulas.length) return "SEM VÁLVULAS";
   const todas=o.valvulas.every(v=>v.condenada||valvulaCompleta(v)); // condenada não precisa de avaliação completa
@@ -483,7 +570,7 @@ async function semearSeed(){
     for(const o of []){ // OS de exemplo não é mais semeada (vinha uma versão antiga da OS 634)
       if(indice.some(m=>m.id===o.id)) continue;
       await set("os:"+o.id,o);
-      indice.unshift({id:o.id,numero:o.numero,clienteId:o.clienteId,data:o.data,qtd:(o.valvulas||[]).length,situacao:situacaoOS(o),criado:o.criado});
+      indice.unshift(metaOS(o));
     }
     await set("os:index",indice);
     local("nv:seed634","1");
@@ -507,8 +594,7 @@ async function boot(){
 async function salvar(){
   if(!OS) return;
   if(!aplicandoNuvem){ OS.atualizado=new Date().toISOString(); if(V && OS.valvulas.includes(V)) V.atualizado=OS.atualizado; }
-  const meta={id:OS.id,numero:OS.numero,clienteId:OS.clienteId,data:OS.data,
-    qtd:OS.valvulas.length,situacao:situacaoOS(OS),criado:OS.criado};
+  const meta=metaOS(OS);
   const i=indice.findIndex(x=>x.id===OS.id);
   if(i>=0) indice[i]=meta; else indice.unshift(meta);
   await set("os:"+OS.id,OS); await set("os:index",indice); cacheOS=null;
@@ -572,7 +658,11 @@ const app=document.getElementById("app"),dock=document.getElementById("dock"),do
   back=document.getElementById("back"),ttl=document.getElementById("ttl"),sub=document.getElementById("sub"),
   pw=document.getElementById("pw"),pb=document.getElementById("pb"),tabsEl=document.getElementById("tabs");
 
-function cab(t,s,v){ ttl.childNodes[0].nodeValue=t; sub.textContent=s||""; back.style.display=v?"block":"none"; }
+function cab(t,s,v){ ttl.childNodes[0].nodeValue=t; sub.textContent=s||""; back.style.display=v?"block":"none";
+  document.getElementById("logo").style.display=v?"none":"flex"; }
+function passos(i){ const el=document.getElementById("steps");
+  if(i==null){ el.style.display="none"; return; }
+  el.style.display="grid"; el.innerHTML=ETAPAS.map((_,n)=>`<i class="${n<i?"f":n===i?"a":""}"></i>`).join(""); }
 function setDock(h,comAbas){
   if(!h){ dock.style.display="none"; dockIn.innerHTML=""; dock.classList.remove("acima");
     tabsEl.style.display="flex"; document.body.classList.add("comAbas"); return; }
@@ -585,56 +675,130 @@ function aviso(msg){ const d=document.createElement("div"); d.className="warn"; 
   d.style.cssText+="position:fixed;left:15px;right:15px;bottom:150px;z-index:60";
   document.body.appendChild(d); setTimeout(()=>d.remove(),4500); }
 
+const ICONE={
+  inicio:'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+  os:'M8 4h8l1 2h3v15H4V6h3zM8 11h8M8 15h5',
+  hist:'M4 19V9M10 19V5M16 19v-7M22 19H2',
+  cad:'M16 20v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 20v-2a4 4 0 0 0-3-3.9M16 2.1a4 4 0 0 1 0 7.8',
+  cfg:'M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M14 4v4M8 10v4M16 16v4',
+  ok:'M20 6 9 17l-5-5', nc:'M18 6 6 18M6 6l12 12', na:'M5 12h14',
+  falta:'M12 8v5M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z',
+  mais:'M12 5v14M5 12h14', busca:'M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM20 20l-3.5-3.5', seta:'m9 18 6-6-6-6'};
+const svg=(d,t)=>`<svg width="${t||22}" height="${t||22}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"></path></svg>`;
 function tabs(){
-  const t=[["os","OS"],["hist","Histórico"],["cli","Clientes"],["fab","Fabricantes"],["cfg","Taxas"]];
-  tabsEl.innerHTML=t.map(([k,n])=>`<button data-tab="${k}" aria-pressed="${aba===k}">${n}</button>`).join("");
+  const t=[["inicio","Início"],["os","OS"],["hist","Histórico"],["cad","Cadastros"],["cfg","Ajustes"]];
+  tabsEl.innerHTML=t.map(([k,n])=>`<button data-tab="${k}" aria-pressed="${aba===k}">${svg(ICONE[k])}${n}</button>`).join("");
   tabsEl.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{aba=b.dataset.tab;tela="lista";OS=null;V=null;render();});
 }
 
 function render(){
-  window.scrollTo(0,0); tabs();
+  window.scrollTo(0,0); tabs(); passos(null); const fb=document.getElementById("fab"); if(fb) fb.remove();
+  if(aba==="inicio") return telaInicio();
+  if(aba==="cad") return tela==="det"?(cadKind==="cli"?telaClienteDet():telaFabDet()):cadastro(cadKind);
   if(aba==="hist") return tela==="det"?telaHistGrupo():telaHistorico();
   if(aba==="cfg") return telaTaxas();
-  if(aba==="cli") return tela==="det"?telaClienteDet():cadastro("cli");
-  if(aba==="fab") return tela==="det"?telaFabDet():cadastro("fab");
   if(tela==="lista") return telaOSs();
   if(tela==="os") return telaOS();
   if(tela==="aditivo") return telaAditivo();
   return telaEtapa();
 }
 
+/* ---------------- início */
+const COR_BL={o:"#1B7F4B",n:"#E8590C",f:"#E0A100",c:"#B42318",i:"#C9D3CF"};
+const NOME_BL={o:["conforme","conformes"],n:["não conforme","não conformes"],f:["com faltante","com faltante"],c:["condenada","condenadas"],i:["em avaliação","em avaliação"]};
+function faixa(bl){ return `<div class="blocos" role="img" aria-label="${esc(legendaTxt(bl))}">`+String(bl||"").split("").map(c=>`<i style="background:${COR_BL[c]||COR_BL.i}"></i>`).join("")+`</div>`; }
+function contaBl(bl){ const n={}; String(bl||"").split("").forEach(c=>n[c]=(n[c]||0)+1); return n; }
+function legendaTxt(bl){ const n=contaBl(bl); return "oncfi".split("").filter(c=>n[c]).map(c=>n[c]+" "+NOME_BL[c][n[c]===1?0:1]).join(", "); }
+function legenda(bl){ const n=contaBl(bl); return `<div class="leg">`+"oncfi".split("").filter(c=>n[c]).map(c=>`<span><i style="background:${COR_BL[c]}"></i>${n[c]} ${NOME_BL[c][n[c]===1?0:1]}</span>`).join("")+`</div>`; }
+const SELO={"CONCLUÍDA":["concluida","concluída"],"COM ADITIVO":["aditivo","com aditivo"],"EM ANDAMENTO":["andamento","em andamento"],"SEM VÁLVULAS":["vazia","sem válvulas"]};
+function seloOS(sit){ const [c,t]=SELO[sit||"EM ANDAMENTO"]||SELO["EM ANDAMENTO"]; return `<span class="selo ${c}">${t}</span>`; }
+async function completarMetas(){ // índices antigos não têm a faixa de válvulas: calcula uma vez
+  if(!indice.some(m=>m.bl==null)) return false;
+  for(let i=0;i<indice.length;i++){ if(indice[i].bl!=null) continue; const o=await get("os:"+indice[i].id); if(o) indice[i]=metaOS(o); }
+  await set("os:index",indice); return true; }
+function abrirNovaOS(){ aba="os"; OS=novaOS(); tela="os"; render(); }
+function fabNovaOS(){ const f=document.createElement("button"); f.className="fab"; f.id="fab"; f.setAttribute("aria-label","Abrir nova OS");
+  f.innerHTML=svg(ICONE.mais,26); f.onclick=abrirNovaOS; document.body.appendChild(f); }
+
+function telaInicio(){
+  cab("New Válvulas","Inspeção de manutenção",false); prog(null); setDock("",true);
+  const dia=new Date().toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long"});
+  const abertas=indice.filter(m=>m.situacao!=="CONCLUÍDA").length;
+  const valv=indice.reduce((t,m)=>t+(m.qtd||0),0);
+  const cond=indice.reduce((t,m)=>t+(contaBl(m.bl).c||0),0);
+  const ult=indice.slice().sort((x,y)=>String(y.criado||"").localeCompare(String(x.criado||"")))[0];
+  const cli=m=>(clientes.find(c=>c.id===m.clienteId)||{}).nome||"sem cliente";
+  app.innerHTML=`<div class="hero"><small>${esc(dia[0].toUpperCase()+dia.slice(1))}</small><h3>Bom trabalho na oficina hoje.</h3></div>
+    <div class="kpis">
+      <div class="kpi"><b style="color:var(--navy)">${abertas}</b><span>OS em andamento</span></div>
+      <div class="kpi"><b>${valv}</b><span>válvulas inspecionadas</span></div>
+      <div class="kpi"><b style="color:var(--nc)">${cond}</b><span>válvulas condenadas</span></div>
+    </div>
+    ${ult?`<div class="painel">
+      <div style="display:flex;align-items:center;gap:8px"><span class="rot" style="flex:1">Última OS</span>${seloOS(ult.situacao)}</div>
+      <div style="display:flex;align-items:flex-end;gap:12px">
+        <div style="flex:1;min-width:0"><b style="font-family:var(--titulo);font-size:22px;display:block">OS ${esc(ult.numero)}</b>
+          <span style="font-size:13px;color:var(--steel)">${esc(cli(ult))} · ${ult.qtd||0} válvula${ult.qtd===1?"":"s"}</span></div>
+        <button class="btn primary" id="abrUlt" style="width:auto;min-height:46px;padding:0 16px;display:flex;align-items:center;gap:6px;box-shadow:none">Abrir ${svg(ICONE.seta,16)}</button>
+      </div>
+      ${ult.qtd?faixa(ult.bl)+legenda(ult.bl):""}
+    </div>`:`<div class="painel"><span class="rot">Comece por aqui</span><span style="color:var(--steel)">Nenhuma ordem de serviço ainda.</span></div>`}
+    <div class="painel" id="rankBox"><span class="rot">Componentes que mais reprovam</span><span style="color:var(--steel);font-size:13px">Carregando…</span></div>
+    <button class="btn primary" id="novaOS" style="margin-top:16px;display:flex;align-items:center;justify-content:center;gap:10px">${svg(ICONE.mais,20)} Abrir nova OS</button>`;
+  document.getElementById("novaOS").onclick=abrirNovaOS;
+  const au=document.getElementById("abrUlt");
+  if(au) au.onclick=async()=>{ if(await abrirOS(ult.id)){ aba="os"; tela="os"; render(); } };
+  (async()=>{
+    if(await completarMetas()&&aba==="inicio"&&tela==="lista") return telaInicio();
+    const oss=cacheOS||await carregarTodas(); if(aba!=="inicio") return;
+    const comp={}; linhasHistorico(oss).forEach(l=>l.ad.forEach(a=>{ comp[a.texto]=(comp[a.texto]||0)+1; }));
+    oss.forEach(o=>(o.valvulas||[]).filter(v=>v.condenada).forEach(v=>chavesAval(v).filter(k=>v.m1[k]==="nc").forEach(k=>{ const t=textoItem(k,v); comp[t]=(comp[t]||0)+1; })));
+    const r=Object.entries(comp).sort((a,b)=>b[1]-a[1]).slice(0,5), max=r.length?r[0][1]:1;
+    const box=document.getElementById("rankBox"); if(!box) return;
+    box.innerHTML=`<span class="rot">Componentes que mais reprovam</span>`+(r.length?r.map(([t,n])=>
+      `<div class="rank"><span>${esc(t)}</span><span class="t"><i style="width:${Math.round(n/max*100)}%"></i></span><b>${n}</b></div>`).join("")
+      :`<span style="color:var(--steel);font-size:13px">Nenhuma não conformidade registrada ainda.</span>`);
+  })();
+}
+
 /* ---------------- lista de OS */
 function telaOSs(){
   cab("Ordens de serviço","New Válvulas",false); prog(null);
   const q=filtro.trim().toLowerCase();
-  const vis=!q?indice:indice.filter(m=>{
+  const passa={todas:()=>true,andamento:m=>m.situacao==="EM ANDAMENTO"||m.situacao==="SEM VÁLVULAS"||!m.situacao,
+    aditivo:m=>m.situacao==="COM ADITIVO",concluida:m=>m.situacao==="CONCLUÍDA"}[osFiltro]||(()=>true);
+  const vis=indice.filter(passa).filter(m=>{ if(!q) return true;
     const cli=(clientes.find(c=>c.id===m.clienteId)||{}).nome||"";
     return [m.numero,cli].join(" ").toLowerCase().includes(q); });
-  const linhas=vis.map(m=>{
-    const s=m.situacao||"EM ANDAMENTO";
-    const cls=s==="CONCLUÍDA"?"p-lib":s==="COM ADITIVO"?"p-rep":"p-pend";
+  const cartoes=vis.map(m=>{
     const cli=(clientes.find(c=>c.id===m.clienteId)||{}).nome||"sem cliente";
-    return `<button class="row" data-o="${m.id}"><span class="g"><b>${esc(m.numero)||"sem número"}</b>
-      <small>${esc(cli)} · ${m.qtd||0} válvula${m.qtd===1?"":"s"} · ${esc(m.data||"")}</small></span>
-      <span class="pill ${cls}">${s.toLowerCase()}</span></button>`;
+    return `<button class="oscard" data-o="${m.id}">
+      <span class="topo"><span style="flex:1;min-width:0"><span class="n">OS ${esc(m.numero)||"sem número"}</span>
+        <span class="meta">${esc(cli)} · ${esc(m.data||"")} · ${m.qtd||0} válvula${m.qtd===1?"":"s"}</span></span>${seloOS(m.situacao)}</span>
+      ${m.qtd&&m.bl?faixa(m.bl)+legenda(m.bl):""}
+    </button>`;
   }).join("");
   const bi=bkpInfo();
-  const banner=precisaBackup()?`<div class="warn" style="margin-bottom:11px">
+  const banner=precisaBackup()?`<div class="warn" style="margin-bottom:12px">
       <b>${!bi.ultimo?"Você ainda não fez backup.":"Último backup há "+bi.dias+" dia"+(bi.dias===1?"":"s")+"."}</b>
       ${bi.pend?" "+bi.pend+" alteração(ões) sem cópia de segurança.":""} Faça um backup e guarde no seu servidor.
-      <button class="btn primary" id="bkpnow" style="margin-top:9px;padding:12px">Fazer backup agora</button></div>`:"";
-  app.innerHTML=banner+(indice.length?`<label class="f" style="background:#fff;border:1px solid var(--rule);border-radius:12px;margin-bottom:11px">
-      <span>Buscar por número da OS ou cliente</span><input id="busca" value="${esc(filtro)}" placeholder="digite para filtrar"></label>`:"")
-    +(linhas?`<div class="list">${linhas}</div>`:`<div class="empty">Nenhuma ordem de serviço.<br>Toque em abrir OS para começar.</div>`);
+      <button class="btn primary" id="bkpnow" style="margin-top:9px;min-height:46px">Fazer backup agora</button></div>`:"";
+  const pills=[["todas","Todas"],["andamento","Em andamento"],["aditivo","Com aditivo"],["concluida","Concluídas"]]
+    .map(([k,n])=>`<button data-f="${k}" aria-pressed="${osFiltro===k}">${n}</button>`).join("");
+  app.innerHTML=banner+(indice.length?`<label class="busca">${svg(ICONE.busca,18)}<input id="busca" type="search" value="${esc(filtro)}" placeholder="Número da OS ou cliente" aria-label="Buscar por número da OS ou cliente"></label>
+      <div class="pills" role="group" aria-label="Filtrar por situação">${pills}</div>`:"")
+    +(cartoes||`<div class="empty">${indice.length?"Nenhuma OS nesta busca.":"Nenhuma ordem de serviço.<br>Toque em + para abrir a primeira."}</div>`)
+    +`<div style="height:70px"></div>`;
   const bn=document.getElementById("bkpnow");
   if(bn) bn.onclick=async()=>{ const r=await exportarBackup({compartilhar:true}); if(r&&r.cancelado) return; telaOSs(); };
   const bu=document.getElementById("busca");
   if(bu) bu.oninput=()=>{ filtro=bu.value; const p=bu.selectionStart; telaOSs();
     const n=document.getElementById("busca"); if(n){n.focus();n.setSelectionRange(p,p);} };
-  setDock(`<button class="btn primary" id="n">Abrir OS</button>`,true);
-  dockIn.querySelector("#n").onclick=()=>{ OS=novaOS(); tela="os"; render(); };
+  app.querySelectorAll("[data-f]").forEach(b=>b.onclick=()=>{ osFiltro=b.dataset.f; telaOSs(); });
+  setDock("",true); if(!document.getElementById("fab")) fabNovaOS();
   app.querySelectorAll("[data-o]").forEach(b=>b.onclick=async()=>{
     if(await abrirOS(b.dataset.o)){ tela="os"; render(); } else aviso("Não foi possível abrir esta OS."); });
+  if(indice.some(m=>m.bl==null)) completarMetas().then(ok=>{ if(ok&&aba==="os"&&tela==="lista") telaOSs(); });
 }
 
 /* ---------------- tela da OS */
@@ -765,6 +929,7 @@ function telaEtapa(){
   cab(c==="tipo"?"Tipo de válvula":c==="dados"?"Dados da válvula":c==="proc"?"Processo padrão a executar":
       c==="aval"?"Avaliação dos componentes":c==="nc"?"Não conformidades":"Resumo da válvula",
       `OS ${esc(OS.numero)} · item ${V.item} · etapa ${etapa+1} de ${ETAPAS.length}`,true);
+  passos(etapa);
   back.onclick=async()=>{ await salvar(); if(etapa>0){etapa--; if(etapa===2&&V.condenada) etapa=1; render();} else {tela="os";V=null;render();} };
   if(c==="tipo") return etTipo();
   if(c==="dados") return etDados();
@@ -861,12 +1026,13 @@ function etAval(){
   prog(its.length?feitos/its.length:0);
   app.innerHTML=(V.condenada?`<p class="note" style="margin:0 0 11px">Válvula condenada: marque só os componentes que levaram à condenação. Os outros podem ficar em branco.</p>`:"")+`<div class="card">`+its.map((t,i)=>{
     const k="aval-"+i,v=V.m1[k]||"";
-    return `<div class="item"><div class="cod">A-${i+1}</div><div class="txt">${t}</div>
+    const rot={ok:"conforme",nc:"não conforme",na:"não se aplica",falta:"faltante"}[v]||"a avaliar";
+    return `<div class="item"><div class="aval-hd"><span class="cod">A-${i+1}</span><div class="txt">${t}</div><span class="st ${v}">${rot}</span></div>
       <div class="marks">
-        <button class="mk" data-k="${k}" data-v="ok" aria-pressed="${v==="ok"}">Conforme</button>
-        <button class="mk" data-k="${k}" data-v="nc" aria-pressed="${v==="nc"}">Não conf.</button>
-        <button class="mk" data-k="${k}" data-v="na" aria-pressed="${v==="na"}">N/A</button>
-        <button class="mk" data-k="${k}" data-v="falta" aria-pressed="${v==="falta"}">Faltante</button>
+        <button class="mk" data-k="${k}" data-v="ok" aria-pressed="${v==="ok"}">${svg(ICONE.ok)}Conforme</button>
+        <button class="mk" data-k="${k}" data-v="nc" aria-pressed="${v==="nc"}">${svg(ICONE.nc)}Não conf.</button>
+        <button class="mk" data-k="${k}" data-v="na" aria-pressed="${v==="na"}">${svg(ICONE.na)}N/A</button>
+        <button class="mk" data-k="${k}" data-v="falta" aria-pressed="${v==="falta"}">${svg(ICONE.falta)}Faltante</button>
       </div></div>`; }).join("")+`</div>`;
   app.querySelectorAll(".mk").forEach(b=>b.onclick=async()=>{
     const k=b.dataset.k;
@@ -874,6 +1040,7 @@ function etAval(){
       const temDados=(d.fotos&&d.fotos.length)||(d.rec||"").trim()||pr.inc;
       if(temDados&&!confirm("Este componente está como não conforme. Mudar apaga as fotos, a recomendação e o valor do aditivo dele. Mudar mesmo assim?")) return; }
     V.m1[k]=V.m1[k]===b.dataset.v?"":b.dataset.v;
+    try{ if(navigator.vibrate) navigator.vibrate(18); }catch(e){}
     if(V.m1[k]!=="nc"){ delete V.nc[k]; delete V.prop[k]; }
     await salvar(); etAval();
     const el=app.querySelector(`[data-k="${k}"]`); if(el) el.scrollIntoView({block:"center"}); });
@@ -1137,7 +1304,8 @@ function cadastro(kind){
       <span class="pill p-and">${extra}</span>
       <button data-rm="${x.id}" style="border:0;background:none;color:var(--nc);font-size:20px;cursor:pointer;padding:0 4px">×</button></div>`;
   }).join("");
-  app.innerHTML=(linhas?`<div class="list">${linhas}</div>`:`<div class="empty">Nenhum cadastro ainda.</div>`)+
+  app.innerHTML=`<div class="seg" role="group" aria-label="Tipo de cadastro"><button data-kind="cli" aria-pressed="${kind==="cli"}">Clientes</button><button data-kind="fab" aria-pressed="${kind==="fab"}">Fabricantes</button></div>`+
+    (linhas?`<div class="list">${linhas}</div>`:`<div class="empty">Nenhum cadastro ainda.</div>`)+
     `<h2>Novo cadastro</h2><div class="card">
       <label class="f"><span>CNPJ</span><input id="cc" inputmode="numeric" placeholder="00.000.000/0000-00"></label>
       <label class="f" style="padding:9px 13px"><button class="btn ghost" id="bus" style="padding:11px">Buscar dados pelo CNPJ</button></label>
@@ -1149,6 +1317,7 @@ function cadastro(kind){
       <button class="btn ghost" id="seed" style="margin-top:9px">Repor marcas conhecidas</button>
       <p class="note">Inclui as marcas de mercado que ainda não estiverem na lista. Nenhuma é duplicada.</p>`:""}`;
   setDock("",true);
+  app.querySelectorAll("[data-kind]").forEach(b=>b.onclick=()=>{ cadKind=b.dataset.kind; tela="lista"; render(); });
   let achado=null;
   document.getElementById("bus").onclick=async()=>{
     const b=document.getElementById("bus"),t=b.textContent;
@@ -1254,7 +1423,7 @@ function telaFabDet(){
 
 /* ---------------- taxas */
 function telaTaxas(){
-  cab("Taxas de hora","Usadas no cálculo do aditivo",false); prog(null);
+  cab("Ajustes","Taxas, mecânicos e backup",false); prog(null);
   app.innerHTML=`<div class="card">`+cfg.taxas.map(t=>
     `<label class="f"><span>${esc(t.nome)} — R$/hora</span>
       <input type="number" inputmode="decimal" data-t="${t.id}" value="${t.valor||""}" placeholder="0,00"></label>`).join("")+`</div>
@@ -1326,7 +1495,7 @@ function telaTaxas(){
     for(const o of p.os){ if(!o||!o.id) continue;
       const atual=await get("os:"+o.id);
       const m=atual?mesclarOS(atual,o):o; m.atualizado=new Date().toISOString(); await set("os:"+o.id,m);
-      const meta={id:m.id,numero:m.numero,clienteId:m.clienteId,data:m.data,qtd:(m.valvulas||[]).length,situacao:situacaoOS(m),criado:m.criado};
+      const meta=metaOS(m);
       const i=indice.findIndex(x=>x.id===m.id); if(i>=0) indice[i]=meta; else indice.push(meta); }
     indice.sort((x,y)=>String(y.criado||"").localeCompare(String(x.criado||"")));
     await set("os:index",indice); cacheOS=null; await dedupeFab();
@@ -1623,8 +1792,7 @@ async function aplicarNuvem(dados){
     try{ await hidratar({os:osFinal}); }catch(e){} // referência "sbf:" que ficou no aparelho (ex.: versão antiga) vira foto; se falhar, tenta no próximo sync
     indice=[];
     for(const o of osFinal){ await set("os:"+o.id,o);
-      indice.push({id:o.id,numero:o.numero,clienteId:o.clienteId,data:o.data,
-        qtd:(o.valvulas||[]).length,situacao:situacaoOS(o),criado:o.criado}); }
+      indice.push(metaOS(o)); }
     indice.sort((a,b)=>String(b.criado||"").localeCompare(String(a.criado||"")));
     await set("os:index",indice);
     const uniao=(loc,nuv)=>{ const ids=new Set((loc||[]).map(x=>x.id)); const r=(loc||[]).slice();
