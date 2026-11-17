@@ -1,5 +1,8 @@
 -- New Válvulas — fecha a tabela do app: só contas autorizadas da empresa leem e gravam.
 --
+-- ATENÇÃO: hoje o app sincroniza SEM login. Este arquivo é opcional e ainda NÃO foi aplicado.
+-- Se for executado, o app passa a exigir a conta da empresa em todos os aparelhos.
+--
 -- ANTES de rodar:
 --   1. Painel Supabase > Authentication > Users: crie a(s) conta(s) da empresa (e-mail e senha).
 --   2. Painel Supabase > Authentication > Sign In / Providers: desligue "Allow new users to sign up".
