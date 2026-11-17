@@ -334,11 +334,14 @@ function situacaoOS(o){
 }
 
 function custoItem(p){ let c=Number(p.material)||0;
-  (cfg.taxas||[]).forEach(t=>{ c+=(Number((p.horas||{})[t.id])||0)*(Number(t.valor)||0); }); return c; }
+  const taxa={}; (cfg.taxas||[]).forEach(t=>{ taxa[t.id]=t.valor; });
+  Object.assign(taxa,p.taxas||{}); // taxas congeladas na geração da proposta valem sobre as atuais
+  for(const id in (p.horas||{})) c+=(Number(p.horas[id])||0)*(Number(taxa[id])||0);
+  return c; }
 
 function aditivosOS(o){
   const out=[];
-  o.valvulas.forEach(v=>chavesAval(v).filter(k=>v.m1[k]==="nc").forEach(k=>{
+  o.valvulas.filter(v=>!v.condenada).forEach(v=>chavesAval(v).filter(k=>v.m1[k]==="nc").forEach(k=>{ // condenada não é recuperada: fica fora do aditivo
     const p=(v.prop||{})[k]||{};
     out.push({v,k,p,texto:textoItem(k,v)});
   }));
@@ -635,6 +638,8 @@ function telaOSs(){
 }
 
 /* ---------------- tela da OS */
+function osDuplicada(){ const n=String(OS.numero||"").trim().toLowerCase(); if(!n) return null;
+  return indice.find(m=>m.id!==OS.id&&String(m.numero||"").trim().toLowerCase()===n)||null; }
 function telaOS(){
   cab(OS.numero?"OS "+OS.numero:"Nova OS",
       (clientes.find(c=>c.id===OS.clienteId)||{}).nome||"sem cliente",true);
@@ -658,7 +663,7 @@ function telaOS(){
   const ad=aditivosOS(OS), T=totaisOS(OS), s=situacaoOS(OS);
   app.innerHTML=`<div class="card">
       <div class="r2">
-        <label class="f"><span>Número da OS *</span><input id="osnum" value="${esc(OS.numero)}" placeholder="OS-1042"></label>
+        <label class="f"><span>Número da OS *</span><input id="osnum" value="${esc(OS.numero)}" placeholder="OS-1042"><small id="osdup" style="display:none;color:var(--nc);font-size:11.5px;font-weight:650"></small></label>
         <label class="f"><span>Data de abertura</span><input value="${esc(OS.data)}" disabled style="color:var(--steel)"></label>
       </div>
       <label class="f"><span>Cliente *</span><input id="oscli" list="dlCli" autocomplete="off" placeholder="digite para buscar o cliente…" value="${esc(cliNome)}"><datalist id="dlCli">${optC}</datalist></label>
@@ -691,7 +696,10 @@ function telaOS(){
     <h2>Situação</h2><div class="verdict ${s==="CONCLUÍDA"?"v-lib":"v-pend"}">${s}</div>
     <button id="del" style="display:block;margin:28px auto 6px;background:none;border:0;color:var(--nc);font:inherit;font-size:14px;text-decoration:underline;padding:10px;cursor:pointer">Excluir esta OS</button>`;
 
-  document.getElementById("osnum").oninput=e=>{ OS.numero=e.target.value; autoSalvar(); };
+  const dupEl=document.getElementById("osdup");
+  const mostraDup=()=>{ const d=osDuplicada(); dupEl.style.display=d?"block":"none"; if(d) dupEl.textContent="Já existe uma OS com este número ("+((clientes.find(c=>c.id===d.clienteId)||{}).nome||"sem cliente")+", "+(d.data||"")+")."; };
+  mostraDup();
+  document.getElementById("osnum").oninput=e=>{ OS.numero=e.target.value; mostraDup(); autoSalvar(); };
   document.getElementById("osa1").oninput=e=>{ OS.a1=e.target.value; autoSalvar(); };
   document.getElementById("osd1").oninput=e=>{ OS.d1=e.target.value; autoSalvar(); };
   const sc=document.getElementById("oscli");
@@ -738,6 +746,7 @@ function telaOS(){
            <button class="btn ghost" id="pl">Gerar laudo da OS</button>`);
   dockIn.querySelector("#sv").onclick=async()=>{
     if(!OS.numero.trim()||!OS.clienteId){ aviso("Preencha número da OS e cliente."); return; }
+    const dup=osDuplicada(); if(dup&&!indice.some(m=>m.id===OS.id)&&!confirm("Já existe uma OS com o número "+OS.numero.trim()+". Salvar mesmo assim?")) return;
     await salvar(); tela="lista"; OS=null; render(); };
   dockIn.querySelector("#pl").onclick=async()=>{
     if(!OS.valvulas.length){ aviso("Adicione ao menos uma válvula."); return; }
@@ -950,7 +959,7 @@ function telaAditivo(){
         ${(cfg.taxas||[]).map(t=>`<div class="l"><span>${esc(t.nome)} — horas</span>
           <input type="number" inputmode="decimal" data-p="${id}" data-f="h:${t.id}" value="${(p.horas||{})[t.id]??""}"></div>`).join("")}
         <div class="l"><span>Preço ao cliente (R$)</span><input type="number" inputmode="decimal" data-p="${id}" data-f="preco" value="${p.preco??""}"></div>
-        <div class="tot"><span>Custo</span><b data-custo="${id}">${brl(custoItem(p))}</b></div>
+        <div class="tot"><span>Custo${p.taxas?` <small style="font-weight:400;color:var(--steel)">(taxas de ${esc(p.taxasEm||"")})</small>`:""}</span><b data-custo="${id}">${brl(custoItem(p))}</b></div>
         <div class="tot"><span>Margem</span><b data-margem="${id}" class="${(Number(p.preco)||0)-custoItem(p)>=0?"mg-ok":"mg-bad"}">${brl((Number(p.preco)||0)-custoItem(p))}</b></div>
       </div>`:"";
       return `<div class="prop"><div class="hd"><div class="g">
@@ -990,6 +999,10 @@ function telaAditivo(){
     const inc=aditivosOS(OS).filter(a=>a.p.inc);
     if(!inc.length){ aviso("Inclua ao menos um item na proposta."); return; }
     if(inc.some(a=>!(Number(a.p.preco)>0))){ aviso("Preencha o preço ao cliente em todos os itens incluídos."); return; }
+    // congela as taxas de hora dos itens enviados ao cliente: mudar a taxa depois não altera a margem desta proposta
+    let mudou=false;
+    inc.forEach(a=>{ if(!a.p.taxas){ a.p.taxas={}; (cfg.taxas||[]).forEach(t=>{ a.p.taxas[t.id]=Number(t.valor)||0; }); a.p.taxasEm=hoje(); a.v.prop[a.k]=a.p; mudou=true; } });
+    if(mudou) await salvar();
     pdfProposta(); };
 }
 
@@ -1182,8 +1195,10 @@ function cadastro(kind){
     if(kind==="cli") ctxCliente=b.dataset.x; else ctxFab=b.dataset.x; tela="det"; render(); });
   app.querySelectorAll("[data-rm]").forEach(b=>b.onclick=async()=>{
     const id=b.dataset.rm;
-    const usados=kind==="cli"?indice.filter(m=>m.clienteId===id).length:0;
-    if(usados){ aviso("Não dá para excluir: há "+usados+" OS usando este cadastro."); return; }
+    let usados=0;
+    if(kind==="cli") usados=indice.filter(m=>m.clienteId===id).length;
+    else { const oss=cacheOS||await carregarTodas(); usados=oss.filter(o=>(o.valvulas||[]).some(v=>v.fabId===id)).length; }
+    if(usados){ aviso("Não dá para excluir: há "+usados+" OS "+(kind==="cli"?"deste cliente":"com válvulas deste fabricante")+"."); return; }
     if(!confirm("Excluir este cadastro?")) return;
     const novo=arr.filter(x=>x.id!==id);
     if(kind==="cli") clientes=novo; else fabricantes=novo;

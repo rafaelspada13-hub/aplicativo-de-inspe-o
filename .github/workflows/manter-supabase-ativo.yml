@@ -1,0 +1,28 @@
+# Acessa o banco do app uma vez por dia para o Supabase gratuito não pausar o projeto por inatividade
+# (ele pausa depois de cerca de 7 dias sem uso). Só lê uma linha; não grava nada.
+name: Manter Supabase ativo
+
+on:
+  schedule:
+    - cron: "17 11 * * *" # todo dia, 08:17 em Brasília
+  workflow_dispatch: {}
+
+jobs:
+  toque:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lê uma linha da tabela do app
+        run: |
+          URL=$(grep -o 'const SB_URL="[^"]*"' inspecao_valvulas_v2.html | cut -d'"' -f2)
+          KEY=$(grep -o 'const SB_KEY="[^"]*"' inspecao_valvulas_v2.html | cut -d'"' -f2)
+          for i in 1 2 3; do
+            code=$(curl -sS -m 30 -o /dev/null -w "%{http_code}" \
+              "$URL/rest/v1/inspecao_valvulas?select=id&limit=1" \
+              -H "apikey: $KEY" -H "Authorization: Bearer $KEY" || true)
+            echo "tentativa $i: HTTP $code"
+            [ "$code" = "200" ] && exit 0
+            sleep 30
+          done
+          echo "::error::O banco não respondeu. Veja se o projeto foi pausado no painel do Supabase."
+          exit 1
