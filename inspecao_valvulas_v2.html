@@ -871,7 +871,9 @@ function telaOS(){
     <div class="card"><div class="r2">
       <label class="f"><span>Nome</span><input id="osa1" value="${esc(OS.a1)}" placeholder="nome"></label>
       <label class="f"><span>Data</span><input id="osd1" value="${esc(OS.d1)}" placeholder="${hoje()}"></label>
-    </div></div>
+    </div>${(()=>{ const l=assinaturas().map((a,i)=>[a,i]).filter(([a])=>assOk(a)); if(l.length<2) return "";
+      const atual=OS.assinante!=null?+OS.assinante:0;
+      return `<label class="f"><span>Quem assina o laudo e o aditivo</span><select id="osass">${l.map(([a,i])=>`<option value="${i}" ${i===atual?"selected":""}>${esc(a.nome||"Assinatura "+(i+1))}</option>`).join("")}</select></label>`; })()}</div>
     <h2>Situação</h2><div class="verdict ${s==="CONCLUÍDA"?"v-lib":"v-pend"}">${s}</div>
     <button id="del" style="display:block;margin:28px auto 6px;background:none;border:0;color:var(--nc);font:inherit;font-size:14px;text-decoration:underline;padding:10px;cursor:pointer">Excluir esta OS</button>`;
 
@@ -881,6 +883,7 @@ function telaOS(){
   document.getElementById("osnum").oninput=e=>{ OS.numero=e.target.value; mostraDup(); autoSalvar(); };
   document.getElementById("osa1").oninput=e=>{ OS.a1=e.target.value; autoSalvar(); };
   document.getElementById("osd1").oninput=e=>{ OS.d1=e.target.value; autoSalvar(); };
+  const osass=document.getElementById("osass"); if(osass) osass.onchange=()=>{ OS.assinante=+osass.value; autoSalvar(); };
   const sc=document.getElementById("oscli");
   sc.oninput=()=>{ const v=sc.value.trim().toLowerCase(); const hit=clientes.find(c=>(c.nome||"").toLowerCase()===v); OS.clienteId=hit?hit.id:""; autoSalvar(); };
   const scN=document.getElementById("oscliNovo"); if(scN) scN.onclick=()=>{ const b=document.getElementById("novoCli"); b.style.display="block"; b.scrollIntoView({block:"center"}); };
@@ -1465,24 +1468,25 @@ function telaTaxas(){
       <label class="f"><span>Incluir nome</span><input id="mecn" placeholder="nome do mecânico ou pintor"></label></div>
     <button class="btn ghost" id="addmec" style="margin-top:10px">Adicionar</button>
 
-    <h2>Assinatura dos documentos</h2>
-    <div class="card">
-      <label class="f"><span>Nome de quem assina</span><input id="asNome" value="${esc((cfg.assinatura||{}).nome)}" placeholder="nome completo"></label>
-      <label class="f"><span>Cargo ou função</span><input id="asCargo" value="${esc((cfg.assinatura||{}).cargo)}" placeholder="ex.: Responsável técnico"></label>
-      <label class="f"><span>Registro (opcional)</span><input id="asReg" value="${esc((cfg.assinatura||{}).registro)}" placeholder="ex.: CREA 000000/SP"></label>
+    <h2>Assinaturas dos documentos</h2>
+    ${assinaturas().map((as,i)=>`<div class="card" style="margin-bottom:12px">
+      <div class="item" style="padding:12px 13px 6px"><div class="cod">ASSINATURA ${i+1}</div></div>
+      <label class="f"><span>Nome de quem assina</span><input id="asNome${i}" value="${esc(as.nome)}" placeholder="nome completo"></label>
+      <label class="f"><span>Cargo ou função</span><input id="asCargo${i}" value="${esc(as.cargo)}" placeholder="ex.: Responsável técnico"></label>
+      <label class="f"><span>Registro (opcional)</span><input id="asReg${i}" value="${esc(as.registro)}" placeholder="ex.: CREA 000000/SP"></label>
       <div style="padding:12px 13px">
-        ${(cfg.assinatura||{}).img?`<span style="font-size:11px;color:var(--steel)">Assinatura atual</span>
-          <div style="display:flex;align-items:center;gap:10px;margin:6px 0 12px"><img src="${cfg.assinatura.img}" alt="Assinatura atual" style="max-height:60px;max-width:70%;background:#fff;border:1px solid var(--rule);border-radius:8px;padding:4px">
-          <button id="asRem" style="border:0;background:none;color:var(--nc);font:inherit;font-size:13px;text-decoration:underline;cursor:pointer;padding:8px">remover</button></div>`:""}
-        <span style="font-size:11px;color:var(--steel)">${(cfg.assinatura||{}).img?"Para trocar, assine de novo":"Assine com o dedo no quadro"}</span>
-        <canvas id="asPad" style="width:100%;height:150px;border:1.5px dashed #C9D3CF;border-radius:12px;background:#fff;touch-action:none;display:block;margin-top:6px;cursor:crosshair"></canvas>
-        <div style="display:flex;gap:8px;margin-top:8px"><button class="btn ghost" id="asLimpar" style="flex:1;min-height:44px;font-size:14px">Limpar</button>
-          <button class="btn ghost" id="asArq" style="flex:1;min-height:44px;font-size:14px;margin-top:0">Usar foto da assinatura</button></div>
-        <input type="file" id="asFile" accept="image/*" style="display:none">
+        ${as.img?`<span style="font-size:11px;color:var(--steel)">Assinatura atual</span>
+          <div style="display:flex;align-items:center;gap:10px;margin:6px 0 12px"><img src="${as.img}" alt="Assinatura atual ${i+1}" style="max-height:60px;max-width:70%;background:#fff;border:1px solid var(--rule);border-radius:8px;padding:4px">
+          <button id="asRem${i}" style="border:0;background:none;color:var(--nc);font:inherit;font-size:13px;text-decoration:underline;cursor:pointer;padding:8px">remover</button></div>`:""}
+        <span style="font-size:11px;color:var(--steel)">${as.img?"Para trocar, assine de novo":"Assine com o dedo no quadro"}</span>
+        <canvas id="asPad${i}" style="width:100%;height:150px;border:1.5px dashed #C9D3CF;border-radius:12px;background:#fff;touch-action:none;display:block;margin-top:6px;cursor:crosshair"></canvas>
+        <div style="display:flex;gap:8px;margin-top:8px"><button class="btn ghost" id="asLimpar${i}" style="flex:1;min-height:44px;font-size:14px">Limpar</button>
+          <button class="btn ghost" id="asArq${i}" style="flex:1;min-height:44px;font-size:14px;margin-top:0">Usar foto da assinatura</button></div>
+        <input type="file" id="asFile${i}" accept="image/*" style="display:none">
+        <button class="btn primary" id="asSalvar${i}" style="margin-top:10px;min-height:48px">Salvar assinatura ${i+1}</button>
       </div>
-    </div>
-    <button class="btn primary" id="asSalvar" style="margin-top:10px">Salvar assinatura</button>
-    <p class="note">Sai no laudo e na proposta de aditivo, acima da linha de quem assina. O nome de quem fez a inspeção continua no laudo.</p>
+    </div>`).join("")}
+    <p class="note">Cada OS escolhe quem assina (na tela da OS, em "Responsável pela inspeção"). Sem escolha, vale a assinatura 1.</p>
 
     <h2>Backup dos dados</h2>
     <div class="warn">Os dados ficam no aparelho e na nuvem (✓ na nuvem no topo). Mesmo assim, faça um backup de vez em quando e guarde no seu servidor.</div>
@@ -1516,7 +1520,7 @@ function telaTaxas(){
     await salvarCfg(); render(); };
   app.querySelectorAll("[data-rmmec]").forEach(b=>b.onclick=async()=>{ const l=(cfg.mecanicos||MECANICOS).slice();
     if(!confirm("Tirar "+l[+b.dataset.rmmec]+" da lista?")) return; l.splice(+b.dataset.rmmec,1); cfg.mecanicos=l; await salvarCfg(); render(); });
-  ligarAssinatura();
+  ligarAssinatura(0); ligarAssinatura(1);
   document.getElementById("addmec").onclick=async()=>{ const n=document.getElementById("mecn").value.trim();
     if(!n){ aviso("Preencha o nome."); return; } cfg.mecanicos=(cfg.mecanicos||MECANICOS).concat([n]); await salvarCfg(); render(); };
   const bk=document.getElementById("bk"), impok=document.getElementById("impok"), info=document.getElementById("bkinfo");
@@ -1553,8 +1557,9 @@ function telaTaxas(){
 }
 
 /* ---- assinatura: quadro para desenhar e recorte da imagem */
-function ligarAssinatura(){
-  const cv=document.getElementById("asPad"); if(!cv) return;
+function ligarAssinatura(i){
+  const $=id=>document.getElementById(id+i);
+  const cv=$("asPad"); if(!cv) return;
   const dpr=window.devicePixelRatio||1; cv.width=Math.round(cv.clientWidth*dpr); cv.height=Math.round(cv.clientHeight*dpr);
   const g=cv.getContext("2d"); g.lineCap="round"; g.lineJoin="round"; g.strokeStyle="#0B2A6B"; g.lineWidth=2.6*dpr;
   let tem=false, ant=null;
@@ -1562,25 +1567,26 @@ function ligarAssinatura(){
   cv.onpointerdown=e=>{ cv.setPointerCapture(e.pointerId); ant=pt(e); g.beginPath(); g.arc(ant[0],ant[1],g.lineWidth/2,0,7); g.fillStyle=g.strokeStyle; g.fill(); tem=true; };
   cv.onpointermove=e=>{ if(!ant) return; const p=pt(e); g.beginPath(); g.moveTo(ant[0],ant[1]); g.lineTo(p[0],p[1]); g.stroke(); ant=p; };
   cv.onpointerup=cv.onpointercancel=()=>{ ant=null; };
-  document.getElementById("asLimpar").onclick=()=>{ g.clearRect(0,0,cv.width,cv.height); tem=false; };
-  const fin=document.getElementById("asFile");
-  document.getElementById("asArq").onclick=()=>{ fin.value=""; fin.click(); };
+  $("asLimpar").onclick=()=>{ g.clearRect(0,0,cv.width,cv.height); tem=false; };
+  const fin=$("asFile");
+  $("asArq").onclick=()=>{ fin.value=""; fin.click(); };
   fin.onchange=()=>{ const f=fin.files[0]; if(!f) return; const fr=new FileReader();
     fr.onload=()=>{ const im=new Image(); im.onload=()=>{ g.clearRect(0,0,cv.width,cv.height);
         const r=Math.min(cv.width/im.width,cv.height/im.height); const w=im.width*r,h=im.height*r;
         g.drawImage(im,(cv.width-w)/2,(cv.height-h)/2,w,h);
         // fundo claro da foto vira transparente: só o traço da caneta fica
-        const d=g.getImageData(0,0,cv.width,cv.height); for(let i=0;i<d.data.length;i+=4){ const l=(d.data[i]+d.data[i+1]+d.data[i+2])/3; if(l>170) d.data[i+3]=0; }
+        const d=g.getImageData(0,0,cv.width,cv.height); for(let k=0;k<d.data.length;k+=4){ const l=(d.data[k]+d.data[k+1]+d.data[k+2])/3; if(l>170) d.data[k+3]=0; }
         g.putImageData(d,0,0); tem=true; }; im.src=fr.result; };
     fr.readAsDataURL(f); };
-  const rem=document.getElementById("asRem");
-  if(rem) rem.onclick=async()=>{ if(!confirm("Remover a assinatura dos documentos?")) return; cfg.assinatura=Object.assign({},cfg.assinatura,{img:""}); await salvarCfg(); render(); };
-  document.getElementById("asSalvar").onclick=async()=>{
-    const a=Object.assign({},cfg.assinatura);
-    a.nome=document.getElementById("asNome").value.trim(); a.cargo=document.getElementById("asCargo").value.trim(); a.registro=document.getElementById("asReg").value.trim();
+  const grava=async a=>{ const l=assinaturas(); l[i]=a; cfg.assinaturas=l; delete cfg.assinatura; await salvarCfg(); };
+  const rem=$("asRem");
+  if(rem) rem.onclick=async()=>{ if(!confirm("Remover a assinatura "+(i+1)+" dos documentos?")) return; await grava(Object.assign({},assinaturas()[i],{img:""})); render(); };
+  $("asSalvar").onclick=async()=>{
+    const a=Object.assign({},assinaturas()[i]);
+    a.nome=$("asNome").value.trim(); a.cargo=$("asCargo").value.trim(); a.registro=$("asReg").value.trim();
     if(tem){ const img=recortarAss(cv); if(!img){ aviso("O quadro está vazio. Assine antes de salvar."); return; } a.img=img; }
     if(!a.img&&!a.nome){ aviso("Assine no quadro ou preencha o nome."); return; }
-    cfg.assinatura=a; await salvarCfg(); aviso("Assinatura salva. Ela já sai no laudo e na proposta."); render(); };
+    await grava(a); aviso("Assinatura "+(i+1)+" salva."); render(); };
 }
 function recortarAss(cv){ // corta as bordas vazias e reduz para no máximo 600 px de largura
   const g=cv.getContext("2d"), d=g.getImageData(0,0,cv.width,cv.height).data;
@@ -1614,7 +1620,12 @@ function janela(html,titulo,topo){
 
 /* ---- peças comuns do laudo e da proposta (documentos que vão para o cliente) */
 function blocoAss(nome,linha2,img){ return `<div><span class="assimg">${img?`<img src="${img}" alt="Assinatura">`:""}</span><span class="linha"><b>${nome||"&nbsp;"}</b>${linha2}</span></div>`; }
-function assPadrao(){ const a=cfg.assinatura||{}; return a.img||a.nome?a:null; }
+function assinaturas(){ // dois espaços de assinatura; a assinatura única antiga vira a primeira
+  const l=Array.isArray(cfg.assinaturas)?cfg.assinaturas.slice(0,2):[cfg.assinatura||{}];
+  while(l.length<2) l.push({}); return l.map(a=>a||{}); }
+const assOk=a=>!!(a&&(a.img||a.nome));
+function assPadrao(){ const l=assinaturas(), i=(OS&&OS.assinante!=null)?+OS.assinante:0;
+  return assOk(l[i])?l[i]:(l.find(assOk)||null); }
 function docTopo(titulo){ return `<div class="l-top"><img src="logo.png" alt=""><div class="t"><b>NEW VÁLVULAS</b><span>${titulo}</span></div></div>`; }
 function docCliente(c,extra){ const end=[c.endereco,[c.municipio,c.uf].filter(Boolean).join("/")].filter(Boolean).join(" — ");
   return `<div class="l-dados">
