@@ -872,8 +872,8 @@ function telaOS(){
       <label class="f"><span>Nome</span><input id="osa1" value="${esc(OS.a1)}" placeholder="nome"></label>
       <label class="f"><span>Data</span><input id="osd1" value="${esc(OS.d1)}" placeholder="${hoje()}"></label>
     </div>${(()=>{ const l=assinaturas().map((a,i)=>[a,i]).filter(([a])=>assOk(a)); if(l.length<2) return "";
-      const atual=OS.assinante!=null?+OS.assinante:0;
-      return `<label class="f"><span>Quem assina o laudo e o aditivo</span><select id="osass">${l.map(([a,i])=>`<option value="${i}" ${i===atual?"selected":""}>${esc(a.nome||"Assinatura "+(i+1))}</option>`).join("")}</select></label>`; })()}</div>
+      const sel=(id,rot,doc)=>`<label class="f"><span>${rot}</span><select id="${id}">${l.map(([a,i])=>`<option value="${i}" ${i===idxAss(doc)?"selected":""}>${esc(a.nome||"Assinatura "+(i+1))}</option>`).join("")}<option value="-1" ${idxAss(doc)<0?"selected":""}>Sem assinatura</option></select></label>`;
+      return `<div class="r2">${sel("osassL","Assina o laudo","laudo")}${sel("osassA","Assina o aditivo","aditivo")}</div>`; })()}</div>
     <h2>Situação</h2><div class="verdict ${s==="CONCLUÍDA"?"v-lib":"v-pend"}">${s}</div>
     <button id="del" style="display:block;margin:28px auto 6px;background:none;border:0;color:var(--nc);font:inherit;font-size:14px;text-decoration:underline;padding:10px;cursor:pointer">Excluir esta OS</button>`;
 
@@ -883,7 +883,9 @@ function telaOS(){
   document.getElementById("osnum").oninput=e=>{ OS.numero=e.target.value; mostraDup(); autoSalvar(); };
   document.getElementById("osa1").oninput=e=>{ OS.a1=e.target.value; autoSalvar(); };
   document.getElementById("osd1").oninput=e=>{ OS.d1=e.target.value; autoSalvar(); };
-  const osass=document.getElementById("osass"); if(osass) osass.onchange=()=>{ OS.assinante=+osass.value; autoSalvar(); };
+  const osL=document.getElementById("osassL"), osA=document.getElementById("osassA");
+  if(osL) osL.onchange=()=>{ OS.assLaudo=+osL.value; autoSalvar(); };
+  if(osA) osA.onchange=()=>{ OS.assAditivo=+osA.value; autoSalvar(); };
   const sc=document.getElementById("oscli");
   sc.oninput=()=>{ const v=sc.value.trim().toLowerCase(); const hit=clientes.find(c=>(c.nome||"").toLowerCase()===v); OS.clienteId=hit?hit.id:""; autoSalvar(); };
   const scN=document.getElementById("oscliNovo"); if(scN) scN.onclick=()=>{ const b=document.getElementById("novoCli"); b.style.display="block"; b.scrollIntoView({block:"center"}); };
@@ -935,7 +937,7 @@ function telaOS(){
     if(!OS.a1.trim()){ aviso("Preencha o responsável pela inspeção."); return; }
     const inc=OS.valvulas.filter(v=>!v.condenada&&!valvulaCompleta(v));
     if(inc.length){ aviso("Laudo bloqueado: item "+inc.map(v=>v.item).join(", ")+" incompleto. Marque todos os componentes e, nas não conformidades, foto, destino e recomendação."); return; }
-    await salvar(); await liberarAssinatura(); pdfLaudo(); };
+    await salvar(); await liberarAssinatura("laudo"); pdfLaudo(); };
   document.getElementById("del").onclick=async()=>{
     if(!confirm("Excluir esta OS com todas as válvulas e fotos? Não tem como desfazer.")) return;
     await apagarOS(OS.id); tela="lista"; OS=null; render(); };
@@ -1199,7 +1201,7 @@ function telaAditivo(){
     inc.forEach(a=>{ if(!a.p.taxas){ a.p.taxas={}; (cfg.taxas||[]).forEach(t=>{ a.p.taxas[t.id]=Number(t.valor)||0; }); a.p.taxasEm=hoje(); mudou=true; }
       const pr=precoItem(a.p); if(Number(a.p.preco)!==pr){ a.p.preco=pr; mudou=true; } a.v.prop[a.k]=a.p; }); // preço enviado fica gravado
     if(mudou) await salvar();
-    await liberarAssinatura(); pdfProposta(); };
+    await liberarAssinatura("aditivo"); pdfProposta(); };
 }
 
 /* ---------------- histórico */
@@ -1487,7 +1489,11 @@ function telaTaxas(){
         <button class="btn primary" id="asSalvar${i}" style="margin-top:10px;min-height:48px">Salvar assinatura ${i+1}</button>
       </div>
     </div>`).join("")}
-    <p class="note">Cada OS escolhe quem assina (na tela da OS, em "Responsável pela inspeção"). Sem escolha, vale a assinatura 1.</p>
+    ${(()=>{ const l=assinaturas().map((a,i)=>[a,i]).filter(([a])=>assOk(a)); if(l.length<2) return "";
+      const sel=(id,rot,doc)=>{ const atual=cfg[doc==="laudo"?"assLaudo":"assAditivo"]!=null?+cfg[doc==="laudo"?"assLaudo":"assAditivo"]:(doc==="laudo"?1:0);
+        return `<label class="f"><span>${rot}</span><select id="${id}">${l.map(([a,i])=>`<option value="${i}" ${i===atual?"selected":""}>${esc(a.nome||"Assinatura "+(i+1))}</option>`).join("")}<option value="-1" ${atual<0?"selected":""}>Sem assinatura</option></select></label>`; };
+      return `<h2>Quem assina por padrão</h2><div class="card"><div class="r2">${sel("cfgAssL","Laudo","laudo")}${sel("cfgAssA","Aditivo","aditivo")}</div></div>`; })()}
+    <p class="note">Cada OS pode trocar quem assina, na tela da OS em "Responsável pela inspeção".</p>
 
     <h2>Backup dos dados</h2>
     <div class="warn">Os dados ficam no aparelho e na nuvem (✓ na nuvem no topo). Mesmo assim, faça um backup de vez em quando e guarde no seu servidor.</div>
@@ -1522,6 +1528,9 @@ function telaTaxas(){
   app.querySelectorAll("[data-rmmec]").forEach(b=>b.onclick=async()=>{ const l=(cfg.mecanicos||MECANICOS).slice();
     if(!confirm("Tirar "+l[+b.dataset.rmmec]+" da lista?")) return; l.splice(+b.dataset.rmmec,1); cfg.mecanicos=l; await salvarCfg(); render(); });
   ligarAssinatura(0); ligarAssinatura(1);
+  const cL=document.getElementById("cfgAssL"), cA=document.getElementById("cfgAssA");
+  if(cL) cL.onchange=async()=>{ cfg.assLaudo=+cL.value; await salvarCfg(); aviso("Padrão do laudo salvo."); };
+  if(cA) cA.onchange=async()=>{ cfg.assAditivo=+cA.value; await salvarCfg(); aviso("Padrão do aditivo salvo."); };
   document.getElementById("addmec").onclick=async()=>{ const n=document.getElementById("mecn").value.trim();
     if(!n){ aviso("Preencha o nome."); return; } cfg.mecanicos=(cfg.mecanicos||MECANICOS).concat([n]); await salvarCfg(); render(); };
   const bk=document.getElementById("bk"), impok=document.getElementById("impok"), info=document.getElementById("bkinfo");
@@ -1653,7 +1662,7 @@ async function hashPin(pin,sal){ const b=await crypto.subtle.digest("SHA-256",ne
   return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,"0")).join(""); }
 const chaveLib=a=>"nv:assok:"+(a.pinHash||"");
 function assLiberada(a){ if(!a||!a.pinHash) return true; try{ return sessionStorage.getItem(chaveLib(a))==="1"; }catch(e){ return false; } }
-function assParaDoc(){ const a=assPadrao(); if(!a) return null; return assLiberada(a)?a:Object.assign({},a,{img:""}); }
+function assParaDoc(doc){ const a=assPadrao(doc); if(!a) return null; return assLiberada(a)?a:Object.assign({},a,{img:""}); }
 function pedirSenha(titulo,texto){ return new Promise(res=>{
   const d=document.createElement("div");
   d.style.cssText="position:fixed;inset:0;z-index:95;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px";
@@ -1672,12 +1681,18 @@ async function conferirSenha(a,titulo,texto){ // true se a assinatura não tem s
   const pin=await pedirSenha(titulo,texto); if(pin==null) return false;
   if(await hashPin(pin,a.pinSal||"")===a.pinHash) return true;
   aviso("Senha incorreta."); return false; }
-async function liberarAssinatura(){ // antes de gerar laudo ou aditivo
-  const a=assPadrao(); if(!a||!a.img||assLiberada(a)) return;
+async function liberarAssinatura(doc){ // antes de gerar laudo ou aditivo
+  const a=assPadrao(doc); if(!a||!a.img||assLiberada(a)) return;
   const ok=await conferirSenha(a,"Assinatura de "+(a.nome||"quem assina"),"Digite a senha para o documento sair assinado. Sem a senha, ele sai só com o nome.");
   if(ok){ try{ sessionStorage.setItem(chaveLib(a),"1"); }catch(e){} } }
 
-function assPadrao(){ const l=assinaturas(), i=(OS&&OS.assinante!=null)?+OS.assinante:0;
+function idxAss(doc){ // índice da assinatura usada no documento ("laudo" ou "aditivo")
+  const campo=doc==="laudo"?"assLaudo":"assAditivo";
+  if(OS&&OS[campo]!=null) return +OS[campo];
+  if(OS&&OS.assinante!=null) return +OS.assinante;      // escolha antiga (uma para os dois)
+  if(cfg[campo]!=null) return +cfg[campo];
+  return doc==="laudo"&&assOk(assinaturas()[1])?1:0; }   // padrão: laudo pela assinatura 2, aditivo pela 1
+function assPadrao(doc){ const l=assinaturas(), i=idxAss(doc||"laudo"); if(i<0) return null; // "sem assinatura"
   return assOk(l[i])?l[i]:(l.find(assOk)||null); }
 function docTopo(titulo){ return `<div class="l-top"><img src="logo.png" alt=""><div class="t"><b>NEW VÁLVULAS</b><span>${titulo}</span></div></div>`; }
 function docCliente(c,extra){ const end=[c.endereco,[c.municipio,c.uf].filter(Boolean).join("/")].filter(Boolean).join(" — ");
@@ -1746,7 +1761,7 @@ function pdfLaudo(){
       :` As constatações, o registro fotográfico e as recomendações técnicas de cada válvula estão detalhados nas páginas seguintes.`+
        (vs.some(v=>!v.condenada&&valvulaTemNC(v))?" Os serviços adicionais à manutenção padrão serão objeto de proposta de aditivo.":""));
 
-  const capa=docTopo("LAUDO DE INSPEÇÃO DE MANUTENÇÃO")+docCliente(c,`${assPadrao()&&OS.a1?`<span><small class="r">Inspeção realizada por</small>${esc(OS.a1)}</span>`:""}<span><small class="r">Data da inspeção</small>${esc(OS.d1||OS.data)}</span>`)+
+  const capa=docTopo("LAUDO DE INSPEÇÃO DE MANUTENÇÃO")+docCliente(c,`${assPadrao("laudo")&&OS.a1?`<span><small class="r">Inspeção realizada por</small>${esc(OS.a1)}</span>`:""}<span><small class="r">Data da inspeção</small>${esc(OS.d1||OS.data)}</span>`)+
     `<p class="l-obj">Este laudo registra a inspeção de recebimento das válvulas da ordem de serviço ${esc(OS.numero)}, com a avaliação individual de cada componente, o registro fotográfico das não conformidades e as recomendações técnicas para a manutenção.</p>
     <div class="l-cont">
       <div><b>${vs.length}</b>${vs.length===1?"válvula inspecionada":"válvulas inspecionadas"}</div>
@@ -1762,7 +1777,7 @@ function pdfLaudo(){
         <td>${n.tipo}${n.marca?`<br><span style="color:#555;font-size:10px">${n.marca}</span>`:""}</td>
         <td>${selo(st[0],st[1])}</td><td>${constatacoes(v)}</td></tr>`; }).join("")+`</table>
     <div class="l-concl${nOk<vs.length?" al":""}">${parecer}</div>
-    <div class="l-ass">${(()=>{ const a=assParaDoc();
+    <div class="l-ass">${(()=>{ const a=assParaDoc("laudo");
       return a?blocoAss(esc(a.nome||OS.a1),[esc(a.cargo||"Responsável técnico"),esc(a.registro),esc(OS.d1||OS.data)].filter(Boolean).join(" · "),a.img)
               :blocoAss(esc(OS.a1),"Responsável técnico pela inspeção · "+esc(OS.d1||OS.data),""); })()}${blocoAss("","Recebido por (cliente) · data","")}</div>`;
 
@@ -1808,7 +1823,7 @@ function pdfProposta(){
     <table><tr><th style="width:34px">Nº</th><th>Serviço ou fornecimento</th><th class="num" style="width:110px">Valor</th></tr>${linhas}
       <tr class="l-total"><td colspan="2" class="num">Valor total do aditivo</td><td class="num">${brl(T.preco)}</td></tr></table>
     <div class="l-concl"><b>Condições.</b> Os valores referem-se exclusivamente aos componentes não conformes constatados na inspeção e são adicionais à manutenção padrão contratada. Prazo de execução e condições de pagamento a definir.</div>
-    <div class="l-ass">${(()=>{ const a=assParaDoc();
+    <div class="l-ass">${(()=>{ const a=assParaDoc("aditivo");
       return a?blocoAss(esc(a.nome||"New Válvulas"),["New Válvulas",esc(a.cargo),esc(hoje())].filter(Boolean).join(" · "),a.img)
               :blocoAss("New Válvulas",esc(hoje()),""); })()}${blocoAss("","Aprovação do cliente · data","")}</div>`,
     `Proposta de aditivo - ${osTxt()} - ${c.nome||""}`.trim(),`Proposta de aditivo · ${osTxt()}`);
