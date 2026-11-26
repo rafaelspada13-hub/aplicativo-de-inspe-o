@@ -298,13 +298,13 @@ const TIPOS={
   globo_man:{nome:"Globo manual",desc:"Haste roscada e volante",prov:true,
     proc:["Desmontagem completa da válvula","Limpeza mecânica e desengraxamento dos componentes","Jateamento abrasivo das superfícies",
       "Ensaio não destrutivo por líquido penetrante (LP)","Lapidação ou substituição da sede e do tampão","Substituição do conjunto de gaxetas",
-      "Substituição dos elementos de fixação e do anel-trava","Montagem e ajuste dos componentes","Teste hidrostático",
+      "Substituição da vedação do castelo","Substituição dos elementos de fixação e do anel-trava","Montagem e ajuste dos componentes","Teste hidrostático",
       "Teste funcional de abertura e fechamento","Pintura conforme padrão New Equipamentos"],
     // componentes conforme a ficha da válvula globo flangeada classe 150 (Zavvor). Os 7 primeiros mantêm a posição antiga;
     // válvulas avaliadas antes desta lista continuam só com eles (avalBase)
+    // vedação do castelo, parafusos e fixadores não são avaliados: são sempre trocados (estão no processo padrão)
     aval:["Corpo","Disco (obturador)","Sede (luva de contenção)","Haste","Castelo","Volante","Gaxeta",
-      "Anel da haste (vedação traseira)","Preme-gaxeta","Vedação do castelo","Guia da haste","Bucha roscada",
-      "Parafusos e porcas do castelo","Olhal (encosto, parafuso e porca)","Fixadores do volante (porca, arruelas e Allen)"],avalBase:7},
+      "Anel da haste (vedação traseira)","Preme-gaxeta","Guia da haste","Bucha roscada","Olhal"],avalBase:7},
   globo_aut:{nome:"Globo automática",desc:"Atuador e posicionador",prov:true,
     proc:["Desmontagem completa da válvula","Limpeza mecânica e desengraxamento dos componentes","Jateamento abrasivo das superfícies",
       "Ensaio não destrutivo por líquido penetrante (LP)","Lapidação ou substituição da sede e do tampão","Substituição do conjunto de gaxetas",
