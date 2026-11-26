@@ -300,7 +300,11 @@ const TIPOS={
       "Ensaio não destrutivo por líquido penetrante (LP)","Lapidação ou substituição da sede e do tampão","Substituição do conjunto de gaxetas",
       "Substituição dos elementos de fixação e do anel-trava","Montagem e ajuste dos componentes","Teste hidrostático",
       "Teste funcional de abertura e fechamento","Pintura conforme padrão New Equipamentos"],
-    aval:["Corpo","Tampão (obturador)","Sede","Haste","Castelo","Volante","Gaxetas"]},
+    // componentes conforme a ficha da válvula globo flangeada classe 150 (Zavvor). Os 7 primeiros mantêm a posição antiga;
+    // válvulas avaliadas antes desta lista continuam só com eles (avalBase)
+    aval:["Corpo","Disco (obturador)","Sede (luva de contenção)","Haste","Castelo","Volante","Gaxeta",
+      "Anel da haste (vedação traseira)","Preme-gaxeta","Vedação do castelo","Guia da haste","Bucha roscada",
+      "Parafusos e porcas do castelo","Olhal (encosto, parafuso e porca)","Fixadores do volante (porca, arruelas e Allen)"],avalBase:7},
   globo_aut:{nome:"Globo automática",desc:"Atuador e posicionador",prov:true,
     proc:["Desmontagem completa da válvula","Limpeza mecânica e desengraxamento dos componentes","Jateamento abrasivo das superfícies",
       "Ensaio não destrutivo por líquido penetrante (LP)","Lapidação ou substituição da sede e do tampão","Substituição do conjunto de gaxetas",
@@ -393,7 +397,9 @@ function novaValvula(n){ return {id:uid("V"),item:n,tipo:null,fabId:"",modelo:""
   montador:"",pintor:"",video:"",m1:{},nc:{},prop:{}}; }
 
 function itens(c,v){ const val=v||V; if(!val||!val.tipo) return [];
-  const t=TIPOS[val.tipo]; return c==="proc"?t.proc:c==="aval"?t.aval:[]; }
+  const t=TIPOS[val.tipo];
+  if(c==="aval") return t.avalBase&&val.avalVer!==2?t.aval.slice(0,t.avalBase):t.aval; // lista antiga para válvula já avaliada
+  return c==="proc"?t.proc:[]; }
 const chavesAval=v=>itens("aval",v).map((_,i)=>"aval-"+i);
 const textoItem=(k,v)=>itens("aval",v)[+k.split("-")[1]];
 
@@ -951,6 +957,7 @@ function etTipo(){
       const temAval=Object.keys(V.m1||{}).some(k=>k.startsWith("aval-")&&V.m1[k]);
       if(temAval&&!confirm("Trocar o tipo apaga a avaliação desta válvula, com as fotos e recomendações das não conformidades. Trocar mesmo assim?")) return;
       V.m1={};V.nc={};V.prop={}; }
+    if(V.tipo!==b.dataset.t) V.avalVer=2; // tipo novo ou trocado: lista de componentes atual
     V.tipo=b.dataset.t; autoProc(); await salvar(); etapa=1; render(); });
 }
 
