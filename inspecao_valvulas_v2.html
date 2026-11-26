@@ -257,6 +257,9 @@ h2{font-size:11.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase
 .seg button{border:0;background:none;font:600 14px Inter,sans-serif;min-height:42px;border-radius:9px;color:#33433E;cursor:pointer}
 .seg button[aria-pressed="true"]{background:#fff;color:var(--navy);box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .empty{padding:40px 20px}
+.mkb{display:flex;gap:5px}.mkb button{border:1.5px solid #D5DDDA;background:#fff;border-radius:999px;font:650 12.5px Inter,sans-serif;padding:0 10px;min-height:34px;color:#33433E;cursor:pointer}
+.mkb button[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
+.calc .l input[data-f="mk"]{width:70px}
 </style>
 </head>
 <body>
@@ -440,8 +443,11 @@ function aditivosOS(o){
   }));
   return out;
 }
+const numBR=x=>Number(String(x??"").replace(/\s/g,"").replace(",","."))||0;
+function precoItem(p){ const mk=numBR(p.mk); // preço ao cliente = custo × markup (ex.: 1,5 · 2 · 3)
+  return mk>0?Math.round(custoItem(p)*mk*100)/100:(Number(p.preco)||0); }
 function totaisOS(o){ let custo=0,preco=0;
-  aditivosOS(o).filter(a=>a.p.inc).forEach(a=>{ custo+=custoItem(a.p); preco+=Number(a.p.preco)||0; });
+  aditivosOS(o).filter(a=>a.p.inc).forEach(a=>{ custo+=custoItem(a.p); preco+=precoItem(a.p); });
   return {custo,preco,margem:preco-custo,pct:preco>0?(preco-custo)/preco*100:0}; }
 
 
@@ -1132,9 +1138,12 @@ function telaAditivo(){
         <div class="l"><span>Material (R$)</span><input type="number" inputmode="decimal" data-p="${id}" data-f="material" value="${p.material??""}"></div>
         ${(cfg.taxas||[]).map(t=>`<div class="l"><span>${esc(t.nome)} — horas</span>
           <input type="number" inputmode="decimal" data-p="${id}" data-f="h:${t.id}" value="${(p.horas||{})[t.id]??""}"></div>`).join("")}
-        <div class="l"><span>Preço ao cliente (R$)</span><input type="number" inputmode="decimal" data-p="${id}" data-f="preco" value="${p.preco??""}"></div>
         <div class="tot"><span>Custo${p.taxas?` <small style="font-weight:400;color:var(--steel)">(taxas de ${esc(p.taxasEm||"")})</small>`:""}</span><b data-custo="${id}">${brl(custoItem(p))}</b></div>
-        <div class="tot"><span>Margem</span><b data-margem="${id}" class="${(Number(p.preco)||0)-custoItem(p)>=0?"mg-ok":"mg-bad"}">${brl((Number(p.preco)||0)-custoItem(p))}</b></div>
+        <div class="l" style="margin-top:6px"><span>Markup (×)</span>
+          <span class="mkb">${["1,5","2","3"].map(x=>`<button type="button" data-mk="${id}" data-val="${x}" aria-pressed="${numBR(p.mk)===numBR(x)}">×${x}</button>`).join("")}</span>
+          <input type="text" inputmode="decimal" data-p="${id}" data-f="mk" value="${esc(p.mk??"")}" placeholder="ex.: 2,5" aria-label="Markup"></div>
+        <div class="tot" style="font-size:15.5px"><span>Preço ao cliente</span><b data-preco="${id}">${brl(precoItem(p))}</b></div>
+        <div class="tot"><span>Margem</span><b data-margem="${id}" class="${precoItem(p)-custoItem(p)>=0?"mg-ok":"mg-bad"}">${brl(precoItem(p)-custoItem(p))}</b></div>
       </div>`:"";
       return `<div class="prop"><div class="hd"><div class="g">
         <div style="font-size:11px;color:var(--steel);font-weight:600">Item ${a.v.item} · ${esc(a.v.tag)} · A-${+a.k.split("-")[1]+1}</div>
@@ -1153,16 +1162,22 @@ function telaAditivo(){
   const achar=id=>{ const [vid,k]=id.split("|"); const v=OS.valvulas.find(x=>x.id===vid); return {v,k}; };
   app.querySelectorAll("[data-inc]").forEach(b=>b.onclick=async()=>{
     const {v,k}=achar(b.dataset.inc); const p=v.prop[k]||{horas:{}};
-    p.inc=!p.inc;
+    p.inc=!p.inc; v.atualizado=new Date().toISOString();
     if(p.inc&&!p.desc) p.desc=(v.nc[k]&&v.nc[k].rec)?v.nc[k].rec.slice(0,90):textoItem(k,v);
+    if(p.inc&&!p.mk&&!p.preco&&local("nv:ultimoMk")) p.mk=local("nv:ultimoMk"); // começa com o último markup usado neste aparelho
     v.prop[k]=p; await salvar(); telaAditivo(); });
   app.querySelectorAll("[data-p]").forEach(i=>i.oninput=()=>{
     const {v,k}=achar(i.dataset.p), f=i.dataset.f, p=v.prop[k]||{horas:{}};
     if(f.startsWith("h:")){ p.horas=p.horas||{}; p.horas[f.slice(2)]=i.value; } else p[f]=i.value;
-    v.prop[k]=p; if(f!=="desc") pintaTotais(); autoSalvar(); });
+    v.atualizado=new Date().toISOString();
+    v.prop[k]=p; if(f!=="desc") pintaTotais(); autoSalvar();
+    if(f==="mk"){ app.querySelectorAll(`[data-mk="${i.dataset.p}"]`).forEach(b=>b.setAttribute("aria-pressed",String(numBR(b.dataset.val)===numBR(i.value))));
+      if(numBR(i.value)>0) local("nv:ultimoMk",i.value.trim()); } });
+  app.querySelectorAll("[data-mk]").forEach(b=>b.onclick=()=>{ const inp=app.querySelector(`input[data-p="${b.dataset.mk}"][data-f="mk"]`);
+    if(inp){ inp.value=b.dataset.val; inp.oninput(); } });
   function pintaTotais(){ const txt=(sel,t,cls)=>{ const e=app.querySelector(sel); if(e){ e.textContent=t; if(cls) e.className=cls; } };
-    aditivosOS(OS).forEach(a=>{ const id=a.v.id+"|"+a.k, c=custoItem(a.p), m=(Number(a.p.preco)||0)-c;
-      txt(`[data-custo="${id}"]`,brl(c)); txt(`[data-margem="${id}"]`,brl(m),m>=0?"mg-ok":"mg-bad"); });
+    aditivosOS(OS).forEach(a=>{ const id=a.v.id+"|"+a.k, c=custoItem(a.p), pr=precoItem(a.p), m=pr-c;
+      txt(`[data-custo="${id}"]`,brl(c)); txt(`[data-preco="${id}"]`,brl(pr)); txt(`[data-margem="${id}"]`,brl(m),m>=0?"mg-ok":"mg-bad"); });
     const T=totaisOS(OS); txt("#tCusto",brl(T.custo)); txt("#tPreco",brl(T.preco));
     txt("#tMargem",brl(T.margem)+(T.preco>0?" · "+T.pct.toFixed(1)+"%":""),T.margem>=0?"mg-ok":"mg-bad"); }
 
@@ -1172,10 +1187,11 @@ function telaAditivo(){
   dockIn.querySelector("#pp").onclick=async()=>{ await salvar();
     const inc=aditivosOS(OS).filter(a=>a.p.inc);
     if(!inc.length){ aviso("Inclua ao menos um item na proposta."); return; }
-    if(inc.some(a=>!(Number(a.p.preco)>0))){ aviso("Preencha o preço ao cliente em todos os itens incluídos."); return; }
+    if(inc.some(a=>!(precoItem(a.p)>0))){ aviso("Preencha material ou horas e o markup em todos os itens incluídos."); return; }
     // congela as taxas de hora dos itens enviados ao cliente: mudar a taxa depois não altera a margem desta proposta
     let mudou=false;
-    inc.forEach(a=>{ if(!a.p.taxas){ a.p.taxas={}; (cfg.taxas||[]).forEach(t=>{ a.p.taxas[t.id]=Number(t.valor)||0; }); a.p.taxasEm=hoje(); a.v.prop[a.k]=a.p; mudou=true; } });
+    inc.forEach(a=>{ if(!a.p.taxas){ a.p.taxas={}; (cfg.taxas||[]).forEach(t=>{ a.p.taxas[t.id]=Number(t.valor)||0; }); a.p.taxasEm=hoje(); mudou=true; }
+      const pr=precoItem(a.p); if(Number(a.p.preco)!==pr){ a.p.preco=pr; mudou=true; } a.v.prop[a.k]=a.p; }); // preço enviado fica gravado
     if(mudou) await salvar();
     pdfProposta(); };
 }
@@ -1202,7 +1218,7 @@ function linhasHistorico(oss){
       const fab=(fabricantes.find(f=>f.id===v.fabId)||{}).nome||"sem fabricante";
       const ad=chavesAval(v).filter(k=>v.m1[k]==="nc").map(k=>({k,texto:textoItem(k,v),
         destino:(v.nc[k]||{}).destino, p:(v.prop||{})[k]||{}}));
-      const preco=ad.filter(a=>a.p.inc).reduce((t,a)=>t+(Number(a.p.preco)||0),0);
+      const preco=ad.filter(a=>a.p.inc).reduce((t,a)=>t+precoItem(a.p),0);
       const custo=ad.filter(a=>a.p.inc).reduce((t,a)=>t+custoItem(a.p),0);
       linhas.push({os:o.numero, osId:o.id, data:o.data, criado:String(o.criado||""), cliente:cli, v, fab,
         tipo:v.tipo?TIPOS[v.tipo].nome:"—", modelo:v.modelo||"sem modelo",
@@ -1275,7 +1291,7 @@ function telaHistGrupo(){
     linhas.forEach(l=>l.ad.filter(a=>a.p.inc).forEach(a=>{
       const nome=(a.p.desc||a.texto).trim();
       const r=precos[nome]=precos[nome]||{n:0,soma:0,min:Infinity,max:0,ultimo:0,data:"",quando:""};
-      const v=Number(a.p.preco)||0;
+      const v=precoItem(a.p);
       r.n++; r.soma+=v; r.min=Math.min(r.min,v); r.max=Math.max(r.max,v);
       if(r.n===1||l.criado>=r.quando){ r.ultimo=v; r.data=l.data; r.quando=l.criado; } // "último" é o da OS mais nova
     }));
@@ -1653,7 +1669,7 @@ function pdfProposta(){
     const desc=frase(a.p.desc||a.texto).replace(/\.$/,"");
     return `<tr><td><b>${n+1}</b></td>
     <td><b>${esc(desc)}</b><br><span style="font-size:10px;color:#555">Item ${a.v.item} · ${tagValv(a.v)}${nv.tipo?" · "+nv.tipo:""} · ${a.texto}: ${d.destino==="substituicao"?"substituição":"recuperação"}</span></td>
-    <td class="num">${brl(a.p.preco)}</td></tr>`; }).join("");
+    <td class="num">${brl(precoItem(a.p))}</td></tr>`; }).join("");
   janela(docTopo("PROPOSTA DE ADITIVO")+
     docCliente(c,`${contato?`<span><small class="r">Contato</small>${esc(contato)}</span>`:""}<span><small class="r">Data</small>${esc(hoje())}</span>`)+
     `<p class="l-obj">Na inspeção de recebimento das válvulas da ordem de serviço ${esc(OS.numero)} foram constatadas não conformidades em componentes, conforme o laudo de inspeção. Apresentamos a seguir a proposta para os serviços adicionais à manutenção padrão contratada.</p>
@@ -1782,6 +1798,9 @@ function mesclarOS(a,b){
 }
 async function aplicarNuvem(dados){
   // offline-first: nunca perde dado — por OS mantém a versão mais nova (por 'atualizado'); cadastros por união de id
+  // o que foi digitado e ainda não foi salvo (salvamento automático pendente) é gravado antes de juntar com a nuvem
+  if(OS && tAuto!==null){ clearTimeout(tAuto); tAuto=null;
+    if(indice.some(m=>m.id===OS.id)||(String(OS.numero||"").trim()&&OS.clienteId)) await salvar(); }
   aplicandoNuvem=true;
   try{
     TOMB=mergeTomb(TOMB,dados.del); await set("tombs",TOMB);
