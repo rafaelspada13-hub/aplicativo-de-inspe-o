@@ -159,8 +159,11 @@ body.comAbas{padding-bottom:210px}
 .sheet .l-proc li{break-inside:avoid;margin-bottom:2px}
 .sheet .l-nota{font-size:10px;color:#555;margin:4px 0 0}
 .sheet .l-obj{margin:0 0 12px;font-size:11.5px;color:#222;text-align:justify}
-.sheet .l-ass{display:flex;gap:28px;margin-top:44px;break-inside:avoid}
-.sheet .l-ass div{flex:1;border-top:1px solid #000;padding-top:5px;font-size:10px;text-align:center}
+.sheet .l-ass{display:flex;gap:28px;margin-top:26px;break-inside:avoid}
+.sheet .l-ass>div{flex:1;display:flex;flex-direction:column;font-size:10px;text-align:center}
+.sheet .l-ass .assimg{height:62px;display:flex;align-items:flex-end;justify-content:center}
+.sheet .l-ass .assimg img{max-height:60px;max-width:230px;object-fit:contain}
+.sheet .l-ass .linha{border-top:1px solid #000;padding-top:5px}
 .sheet .l-ass b{display:block;font-size:11.5px}
 .sheet .num{text-align:right;white-space:nowrap}
 .sheet .l-total td{border-top:1.5px solid #00452e;border-bottom:0;font-weight:bold;font-size:13px}
@@ -1462,6 +1465,25 @@ function telaTaxas(){
       <label class="f"><span>Incluir nome</span><input id="mecn" placeholder="nome do mecânico ou pintor"></label></div>
     <button class="btn ghost" id="addmec" style="margin-top:10px">Adicionar</button>
 
+    <h2>Assinatura dos documentos</h2>
+    <div class="card">
+      <label class="f"><span>Nome de quem assina</span><input id="asNome" value="${esc((cfg.assinatura||{}).nome)}" placeholder="nome completo"></label>
+      <label class="f"><span>Cargo ou função</span><input id="asCargo" value="${esc((cfg.assinatura||{}).cargo)}" placeholder="ex.: Responsável técnico"></label>
+      <label class="f"><span>Registro (opcional)</span><input id="asReg" value="${esc((cfg.assinatura||{}).registro)}" placeholder="ex.: CREA 000000/SP"></label>
+      <div style="padding:12px 13px">
+        ${(cfg.assinatura||{}).img?`<span style="font-size:11px;color:var(--steel)">Assinatura atual</span>
+          <div style="display:flex;align-items:center;gap:10px;margin:6px 0 12px"><img src="${cfg.assinatura.img}" alt="Assinatura atual" style="max-height:60px;max-width:70%;background:#fff;border:1px solid var(--rule);border-radius:8px;padding:4px">
+          <button id="asRem" style="border:0;background:none;color:var(--nc);font:inherit;font-size:13px;text-decoration:underline;cursor:pointer;padding:8px">remover</button></div>`:""}
+        <span style="font-size:11px;color:var(--steel)">${(cfg.assinatura||{}).img?"Para trocar, assine de novo":"Assine com o dedo no quadro"}</span>
+        <canvas id="asPad" style="width:100%;height:150px;border:1.5px dashed #C9D3CF;border-radius:12px;background:#fff;touch-action:none;display:block;margin-top:6px;cursor:crosshair"></canvas>
+        <div style="display:flex;gap:8px;margin-top:8px"><button class="btn ghost" id="asLimpar" style="flex:1;min-height:44px;font-size:14px">Limpar</button>
+          <button class="btn ghost" id="asArq" style="flex:1;min-height:44px;font-size:14px;margin-top:0">Usar foto da assinatura</button></div>
+        <input type="file" id="asFile" accept="image/*" style="display:none">
+      </div>
+    </div>
+    <button class="btn primary" id="asSalvar" style="margin-top:10px">Salvar assinatura</button>
+    <p class="note">Sai no laudo e na proposta de aditivo, acima da linha de quem assina. O nome de quem fez a inspeção continua no laudo.</p>
+
     <h2>Backup dos dados</h2>
     <div class="warn">Os dados ficam no aparelho e na nuvem (✓ na nuvem no topo). Mesmo assim, faça um backup de vez em quando e guarde no seu servidor.</div>
     <p class="note" id="bkstatus"></p>
@@ -1494,6 +1516,7 @@ function telaTaxas(){
     await salvarCfg(); render(); };
   app.querySelectorAll("[data-rmmec]").forEach(b=>b.onclick=async()=>{ const l=(cfg.mecanicos||MECANICOS).slice();
     if(!confirm("Tirar "+l[+b.dataset.rmmec]+" da lista?")) return; l.splice(+b.dataset.rmmec,1); cfg.mecanicos=l; await salvarCfg(); render(); });
+  ligarAssinatura();
   document.getElementById("addmec").onclick=async()=>{ const n=document.getElementById("mecn").value.trim();
     if(!n){ aviso("Preencha o nome."); return; } cfg.mecanicos=(cfg.mecanicos||MECANICOS).concat([n]); await salvarCfg(); render(); };
   const bk=document.getElementById("bk"), impok=document.getElementById("impok"), info=document.getElementById("bkinfo");
@@ -1529,6 +1552,47 @@ function telaTaxas(){
   setDock("",true);
 }
 
+/* ---- assinatura: quadro para desenhar e recorte da imagem */
+function ligarAssinatura(){
+  const cv=document.getElementById("asPad"); if(!cv) return;
+  const dpr=window.devicePixelRatio||1; cv.width=Math.round(cv.clientWidth*dpr); cv.height=Math.round(cv.clientHeight*dpr);
+  const g=cv.getContext("2d"); g.lineCap="round"; g.lineJoin="round"; g.strokeStyle="#0B2A6B"; g.lineWidth=2.6*dpr;
+  let tem=false, ant=null;
+  const pt=e=>{ const r=cv.getBoundingClientRect(); return [(e.clientX-r.left)*dpr,(e.clientY-r.top)*dpr]; };
+  cv.onpointerdown=e=>{ cv.setPointerCapture(e.pointerId); ant=pt(e); g.beginPath(); g.arc(ant[0],ant[1],g.lineWidth/2,0,7); g.fillStyle=g.strokeStyle; g.fill(); tem=true; };
+  cv.onpointermove=e=>{ if(!ant) return; const p=pt(e); g.beginPath(); g.moveTo(ant[0],ant[1]); g.lineTo(p[0],p[1]); g.stroke(); ant=p; };
+  cv.onpointerup=cv.onpointercancel=()=>{ ant=null; };
+  document.getElementById("asLimpar").onclick=()=>{ g.clearRect(0,0,cv.width,cv.height); tem=false; };
+  const fin=document.getElementById("asFile");
+  document.getElementById("asArq").onclick=()=>{ fin.value=""; fin.click(); };
+  fin.onchange=()=>{ const f=fin.files[0]; if(!f) return; const fr=new FileReader();
+    fr.onload=()=>{ const im=new Image(); im.onload=()=>{ g.clearRect(0,0,cv.width,cv.height);
+        const r=Math.min(cv.width/im.width,cv.height/im.height); const w=im.width*r,h=im.height*r;
+        g.drawImage(im,(cv.width-w)/2,(cv.height-h)/2,w,h);
+        // fundo claro da foto vira transparente: só o traço da caneta fica
+        const d=g.getImageData(0,0,cv.width,cv.height); for(let i=0;i<d.data.length;i+=4){ const l=(d.data[i]+d.data[i+1]+d.data[i+2])/3; if(l>170) d.data[i+3]=0; }
+        g.putImageData(d,0,0); tem=true; }; im.src=fr.result; };
+    fr.readAsDataURL(f); };
+  const rem=document.getElementById("asRem");
+  if(rem) rem.onclick=async()=>{ if(!confirm("Remover a assinatura dos documentos?")) return; cfg.assinatura=Object.assign({},cfg.assinatura,{img:""}); await salvarCfg(); render(); };
+  document.getElementById("asSalvar").onclick=async()=>{
+    const a=Object.assign({},cfg.assinatura);
+    a.nome=document.getElementById("asNome").value.trim(); a.cargo=document.getElementById("asCargo").value.trim(); a.registro=document.getElementById("asReg").value.trim();
+    if(tem){ const img=recortarAss(cv); if(!img){ aviso("O quadro está vazio. Assine antes de salvar."); return; } a.img=img; }
+    if(!a.img&&!a.nome){ aviso("Assine no quadro ou preencha o nome."); return; }
+    cfg.assinatura=a; await salvarCfg(); aviso("Assinatura salva. Ela já sai no laudo e na proposta."); render(); };
+}
+function recortarAss(cv){ // corta as bordas vazias e reduz para no máximo 600 px de largura
+  const g=cv.getContext("2d"), d=g.getImageData(0,0,cv.width,cv.height).data;
+  let x0=cv.width,y0=cv.height,x1=-1,y1=-1;
+  for(let y=0;y<cv.height;y++) for(let x=0;x<cv.width;x++) if(d[(y*cv.width+x)*4+3]>20){ if(x<x0)x0=x; if(x>x1)x1=x; if(y<y0)y0=y; if(y>y1)y1=y; }
+  if(x1<0) return "";
+  const pad=6; x0=Math.max(0,x0-pad); y0=Math.max(0,y0-pad); x1=Math.min(cv.width-1,x1+pad); y1=Math.min(cv.height-1,y1+pad);
+  const w=x1-x0+1,h=y1-y0+1,esc2=Math.min(1,600/w);
+  const o=document.createElement("canvas"); o.width=Math.round(w*esc2); o.height=Math.round(h*esc2);
+  o.getContext("2d").drawImage(cv,x0,y0,w,h,0,0,o.width,o.height);
+  return o.toDataURL("image/png"); }
+
 /* ============================================================ PDF */
 
 function janela(html,titulo,topo){
@@ -1549,6 +1613,8 @@ function janela(html,titulo,topo){
 }
 
 /* ---- peças comuns do laudo e da proposta (documentos que vão para o cliente) */
+function blocoAss(nome,linha2,img){ return `<div><span class="assimg">${img?`<img src="${img}" alt="Assinatura">`:""}</span><span class="linha"><b>${nome||"&nbsp;"}</b>${linha2}</span></div>`; }
+function assPadrao(){ const a=cfg.assinatura||{}; return a.img||a.nome?a:null; }
 function docTopo(titulo){ return `<div class="l-top"><img src="logo.png" alt=""><div class="t"><b>NEW VÁLVULAS</b><span>${titulo}</span></div></div>`; }
 function docCliente(c,extra){ const end=[c.endereco,[c.municipio,c.uf].filter(Boolean).join("/")].filter(Boolean).join(" — ");
   return `<div class="l-dados">
@@ -1611,12 +1677,12 @@ function pdfLaudo(){
   if(nNC) ps.push(qtd(nNC,"apresenta não conformidade em componentes","apresentam não conformidades em componentes"));
   if(nFa) ps.push(qtd(nFa,"foi recebida com componente ausente","foram recebidas com componentes ausentes"));
   if(nCond) ps.push(qtd(nCond,"foi condenada por inviabilidade técnica de recuperação","foram condenadas por inviabilidade técnica de recuperação"));
-  const parecer=`<b>Parecer técnico.</b> Foram inspecionadas ${qtd(vs.length,"válvula","válvulas")}. Constatou-se que ${lista(ps)}.`+
+  const parecer=`<b>Parecer técnico.</b> ${vs.length===1?"Foi inspecionada 1 válvula":"Foram inspecionadas "+qtd(vs.length,"válvula","válvulas")}. Constatou-se que ${lista(ps)}.`+
     (nOk===vs.length?" As válvulas seguem para a execução da manutenção padrão."
       :` As constatações, o registro fotográfico e as recomendações técnicas de cada válvula estão detalhados nas páginas seguintes.`+
        (vs.some(v=>!v.condenada&&valvulaTemNC(v))?" Os serviços adicionais à manutenção padrão serão objeto de proposta de aditivo.":""));
 
-  const capa=docTopo("LAUDO DE INSPEÇÃO DE MANUTENÇÃO")+docCliente(c,`<span><small class="r">Data da inspeção</small>${esc(OS.d1||OS.data)}</span>`)+
+  const capa=docTopo("LAUDO DE INSPEÇÃO DE MANUTENÇÃO")+docCliente(c,`${assPadrao()&&OS.a1?`<span><small class="r">Inspeção realizada por</small>${esc(OS.a1)}</span>`:""}<span><small class="r">Data da inspeção</small>${esc(OS.d1||OS.data)}</span>`)+
     `<p class="l-obj">Este laudo registra a inspeção de recebimento das válvulas da ordem de serviço ${esc(OS.numero)}, com a avaliação individual de cada componente, o registro fotográfico das não conformidades e as recomendações técnicas para a manutenção.</p>
     <div class="l-cont">
       <div><b>${vs.length}</b>${vs.length===1?"válvula inspecionada":"válvulas inspecionadas"}</div>
@@ -1632,7 +1698,9 @@ function pdfLaudo(){
         <td>${n.tipo}${n.marca?`<br><span style="color:#555;font-size:10px">${n.marca}</span>`:""}</td>
         <td>${selo(st[0],st[1])}</td><td>${constatacoes(v)}</td></tr>`; }).join("")+`</table>
     <div class="l-concl${nOk<vs.length?" al":""}">${parecer}</div>
-    <div class="l-ass"><div><b>${esc(OS.a1)||"&nbsp;"}</b>Responsável técnico pela inspeção · ${esc(OS.d1||OS.data)}</div><div><b>&nbsp;</b>Recebido por (cliente) · data</div></div>`;
+    <div class="l-ass">${(()=>{ const a=assPadrao();
+      return a?blocoAss(esc(a.nome||OS.a1),[esc(a.cargo||"Responsável técnico"),esc(a.registro),esc(OS.d1||OS.data)].filter(Boolean).join(" · "),a.img)
+              :blocoAss(esc(OS.a1),"Responsável técnico pela inspeção · "+esc(OS.d1||OS.data),""); })()}${blocoAss("","Recebido por (cliente) · data","")}</div>`;
 
   const paginas=vs.map(v=>{
     const n=nomeValv(v), st=statusValv(v), ks=chavesAval(v);
@@ -1676,7 +1744,9 @@ function pdfProposta(){
     <table><tr><th style="width:34px">Nº</th><th>Serviço ou fornecimento</th><th class="num" style="width:110px">Valor</th></tr>${linhas}
       <tr class="l-total"><td colspan="2" class="num">Valor total do aditivo</td><td class="num">${brl(T.preco)}</td></tr></table>
     <div class="l-concl"><b>Condições.</b> Os valores referem-se exclusivamente aos componentes não conformes constatados na inspeção e são adicionais à manutenção padrão contratada. Prazo de execução e condições de pagamento a definir.</div>
-    <div class="l-ass"><div><b>New Válvulas</b>${esc(hoje())}</div><div><b>&nbsp;</b>Aprovação do cliente · data</div></div>`,
+    <div class="l-ass">${(()=>{ const a=assPadrao();
+      return a?blocoAss(esc(a.nome||"New Válvulas"),["New Válvulas",esc(a.cargo),esc(hoje())].filter(Boolean).join(" · "),a.img)
+              :blocoAss("New Válvulas",esc(hoje()),""); })()}${blocoAss("","Aprovação do cliente · data","")}</div>`,
     `Proposta de aditivo - ${osTxt()} - ${c.nome||""}`.trim(),`Proposta de aditivo · ${osTxt()}`);
 }
 
