@@ -935,7 +935,7 @@ function telaOS(){
     if(!OS.a1.trim()){ aviso("Preencha o responsável pela inspeção."); return; }
     const inc=OS.valvulas.filter(v=>!v.condenada&&!valvulaCompleta(v));
     if(inc.length){ aviso("Laudo bloqueado: item "+inc.map(v=>v.item).join(", ")+" incompleto. Marque todos os componentes e, nas não conformidades, foto, destino e recomendação."); return; }
-    await salvar(); pdfLaudo(); };
+    await salvar(); await liberarAssinatura(); pdfLaudo(); };
   document.getElementById("del").onclick=async()=>{
     if(!confirm("Excluir esta OS com todas as válvulas e fotos? Não tem como desfazer.")) return;
     await apagarOS(OS.id); tela="lista"; OS=null; render(); };
@@ -1199,7 +1199,7 @@ function telaAditivo(){
     inc.forEach(a=>{ if(!a.p.taxas){ a.p.taxas={}; (cfg.taxas||[]).forEach(t=>{ a.p.taxas[t.id]=Number(t.valor)||0; }); a.p.taxasEm=hoje(); mudou=true; }
       const pr=precoItem(a.p); if(Number(a.p.preco)!==pr){ a.p.preco=pr; mudou=true; } a.v.prop[a.k]=a.p; }); // preço enviado fica gravado
     if(mudou) await salvar();
-    pdfProposta(); };
+    await liberarAssinatura(); pdfProposta(); };
 }
 
 /* ---------------- histórico */
@@ -1474,6 +1474,7 @@ function telaTaxas(){
       <label class="f"><span>Nome de quem assina</span><input id="asNome${i}" value="${esc(as.nome)}" placeholder="nome completo"></label>
       <label class="f"><span>Cargo ou função</span><input id="asCargo${i}" value="${esc(as.cargo)}" placeholder="ex.: Responsável técnico"></label>
       <label class="f"><span>Registro (opcional)</span><input id="asReg${i}" value="${esc(as.registro)}" placeholder="ex.: CREA 000000/SP"></label>
+      <label class="f"><span>${as.pinHash?"Senha cadastrada · digite para trocar":"Senha para usar a assinatura (opcional, mín. 4 dígitos)"}</span><input id="asPin${i}" type="password" inputmode="numeric" autocomplete="new-password" placeholder="${as.pinHash?"••••  (deixe em branco para manter)":"ex.: 4 a 6 números"}"></label>
       <div style="padding:12px 13px">
         ${as.img?`<span style="font-size:11px;color:var(--steel)">Assinatura atual</span>
           <div style="display:flex;align-items:center;gap:10px;margin:6px 0 12px"><img src="${as.img}" alt="Assinatura atual ${i+1}" style="max-height:60px;max-width:70%;background:#fff;border:1px solid var(--rule);border-radius:8px;padding:4px">
@@ -1578,13 +1579,18 @@ function ligarAssinatura(i){
     fr.readAsDataURL(f); };
   const grava=async a=>{ const l=assinaturas(); l[i]=a; cfg.assinaturas=l; delete cfg.assinatura; await salvarCfg(); };
   const rem=$("asRem");
-  if(rem) rem.onclick=async()=>{ if(!confirm("Remover a assinatura "+(i+1)+" dos documentos?")) return; await grava(Object.assign({},assinaturas()[i],{img:""})); render(); };
+  const atual=()=>assinaturas()[i];
+  if(rem) rem.onclick=async()=>{ if(!await conferirSenha(atual(),"Remover assinatura","Digite a senha atual de "+(atual().nome||"quem assina")+".")) return;
+    if(!confirm("Remover a assinatura "+(i+1)+" dos documentos?")) return; await grava(Object.assign({},atual(),{img:""})); render(); };
   $("asSalvar").onclick=async()=>{
-    const a=Object.assign({},assinaturas()[i]);
+    const a=Object.assign({},assinaturas()[i]), novoPin=$("asPin").value.trim();
+    if(a.pinHash&&!await conferirSenha(a,"Alterar assinatura","Digite a senha atual de "+(a.nome||"quem assina")+".")) return;
+    if(novoPin&&!/^\d{4,}$/.test(novoPin)){ aviso("A senha precisa ter pelo menos 4 números."); return; }
     a.nome=$("asNome").value.trim(); a.cargo=$("asCargo").value.trim(); a.registro=$("asReg").value.trim();
     if(tem){ const img=recortarAss(foto||cv); if(!img){ aviso("O quadro está vazio. Assine antes de salvar."); return; } a.img=img; }
     if(!a.img&&!a.nome){ aviso("Assine no quadro ou preencha o nome."); return; }
-    await grava(a); aviso("Assinatura "+(i+1)+" salva."); render(); };
+    if(novoPin){ a.pinSal=uid("s"); a.pinHash=await hashPin(novoPin,a.pinSal); }
+    await grava(a); aviso("Assinatura "+(i+1)+" salva"+(a.pinHash?" com senha.":".")); render(); };
 }
 function tracoDaFoto(im){ // foto da assinatura no papel → só o traço da caneta, fundo transparente
   const esc2=Math.min(1,900/im.width), W=Math.max(1,Math.round(im.width*esc2)), H=Math.max(1,Math.round(im.height*esc2));
@@ -1642,6 +1648,35 @@ function assinaturas(){ // dois espaços de assinatura; a assinatura única anti
   const l=Array.isArray(cfg.assinaturas)?cfg.assinaturas.slice(0,2):[cfg.assinatura||{}];
   while(l.length<2) l.push({}); return l.map(a=>a||{}); }
 const assOk=a=>!!(a&&(a.img||a.nome));
+/* ---- senha da assinatura: o documento só sai com a imagem depois de digitar a senha de quem assina */
+async function hashPin(pin,sal){ const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(sal+"|"+String(pin).trim()));
+  return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,"0")).join(""); }
+const chaveLib=a=>"nv:assok:"+(a.pinHash||"");
+function assLiberada(a){ if(!a||!a.pinHash) return true; try{ return sessionStorage.getItem(chaveLib(a))==="1"; }catch(e){ return false; } }
+function assParaDoc(){ const a=assPadrao(); if(!a) return null; return assLiberada(a)?a:Object.assign({},a,{img:""}); }
+function pedirSenha(titulo,texto){ return new Promise(res=>{
+  const d=document.createElement("div");
+  d.style.cssText="position:fixed;inset:0;z-index:95;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px";
+  d.innerHTML=`<form class="card" style="max-width:360px;width:100%;padding:18px;display:flex;flex-direction:column;gap:12px">
+    <b style="font-family:var(--titulo);font-size:18px">${esc(titulo)}</b><span class="note" style="margin:0">${esc(texto)}</span>
+    <input type="password" inputmode="numeric" autocomplete="off" placeholder="senha" aria-label="Senha"
+      style="font:600 22px Inter,sans-serif;letter-spacing:6px;text-align:center;border:1.5px solid #D5DDDA;border-radius:12px;padding:12px">
+    <div style="display:flex;gap:8px"><button type="button" class="btn ghost" data-c style="flex:1;min-height:48px">Cancelar</button>
+      <button type="submit" class="btn primary" style="flex:1;min-height:48px;margin-top:0">Confirmar</button></div></form>`;
+  document.body.appendChild(d); const inp=d.querySelector("input"); setTimeout(()=>inp.focus(),50);
+  const fim=v=>{ d.remove(); res(v); };
+  d.querySelector("[data-c]").onclick=()=>fim(null);
+  d.querySelector("form").onsubmit=e=>{ e.preventDefault(); fim(inp.value); }; }); }
+async function conferirSenha(a,titulo,texto){ // true se a assinatura não tem senha ou a senha confere
+  if(!a||!a.pinHash) return true;
+  const pin=await pedirSenha(titulo,texto); if(pin==null) return false;
+  if(await hashPin(pin,a.pinSal||"")===a.pinHash) return true;
+  aviso("Senha incorreta."); return false; }
+async function liberarAssinatura(){ // antes de gerar laudo ou aditivo
+  const a=assPadrao(); if(!a||!a.img||assLiberada(a)) return;
+  const ok=await conferirSenha(a,"Assinatura de "+(a.nome||"quem assina"),"Digite a senha para o documento sair assinado. Sem a senha, ele sai só com o nome.");
+  if(ok){ try{ sessionStorage.setItem(chaveLib(a),"1"); }catch(e){} } }
+
 function assPadrao(){ const l=assinaturas(), i=(OS&&OS.assinante!=null)?+OS.assinante:0;
   return assOk(l[i])?l[i]:(l.find(assOk)||null); }
 function docTopo(titulo){ return `<div class="l-top"><img src="logo.png" alt=""><div class="t"><b>NEW VÁLVULAS</b><span>${titulo}</span></div></div>`; }
@@ -1727,7 +1762,7 @@ function pdfLaudo(){
         <td>${n.tipo}${n.marca?`<br><span style="color:#555;font-size:10px">${n.marca}</span>`:""}</td>
         <td>${selo(st[0],st[1])}</td><td>${constatacoes(v)}</td></tr>`; }).join("")+`</table>
     <div class="l-concl${nOk<vs.length?" al":""}">${parecer}</div>
-    <div class="l-ass">${(()=>{ const a=assPadrao();
+    <div class="l-ass">${(()=>{ const a=assParaDoc();
       return a?blocoAss(esc(a.nome||OS.a1),[esc(a.cargo||"Responsável técnico"),esc(a.registro),esc(OS.d1||OS.data)].filter(Boolean).join(" · "),a.img)
               :blocoAss(esc(OS.a1),"Responsável técnico pela inspeção · "+esc(OS.d1||OS.data),""); })()}${blocoAss("","Recebido por (cliente) · data","")}</div>`;
 
@@ -1773,7 +1808,7 @@ function pdfProposta(){
     <table><tr><th style="width:34px">Nº</th><th>Serviço ou fornecimento</th><th class="num" style="width:110px">Valor</th></tr>${linhas}
       <tr class="l-total"><td colspan="2" class="num">Valor total do aditivo</td><td class="num">${brl(T.preco)}</td></tr></table>
     <div class="l-concl"><b>Condições.</b> Os valores referem-se exclusivamente aos componentes não conformes constatados na inspeção e são adicionais à manutenção padrão contratada. Prazo de execução e condições de pagamento a definir.</div>
-    <div class="l-ass">${(()=>{ const a=assPadrao();
+    <div class="l-ass">${(()=>{ const a=assParaDoc();
       return a?blocoAss(esc(a.nome||"New Válvulas"),["New Válvulas",esc(a.cargo),esc(hoje())].filter(Boolean).join(" · "),a.img)
               :blocoAss("New Válvulas",esc(hoje()),""); })()}${blocoAss("","Aprovação do cliente · data","")}</div>`,
     `Proposta de aditivo - ${osTxt()} - ${c.nome||""}`.trim(),`Proposta de aditivo · ${osTxt()}`);
