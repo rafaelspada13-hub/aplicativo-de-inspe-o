@@ -1562,21 +1562,19 @@ function ligarAssinatura(i){
   const cv=$("asPad"); if(!cv) return;
   const dpr=window.devicePixelRatio||1; cv.width=Math.round(cv.clientWidth*dpr); cv.height=Math.round(cv.clientHeight*dpr);
   const g=cv.getContext("2d"); g.lineCap="round"; g.lineJoin="round"; g.strokeStyle="#0B2A6B"; g.lineWidth=2.6*dpr;
-  let tem=false, ant=null;
+  let tem=false, ant=null, foto=null; // foto: imagem tratada em resolução boa (vale até desenhar por cima)
   const pt=e=>{ const r=cv.getBoundingClientRect(); return [(e.clientX-r.left)*dpr,(e.clientY-r.top)*dpr]; };
-  cv.onpointerdown=e=>{ cv.setPointerCapture(e.pointerId); ant=pt(e); g.beginPath(); g.arc(ant[0],ant[1],g.lineWidth/2,0,7); g.fillStyle=g.strokeStyle; g.fill(); tem=true; };
+  cv.onpointerdown=e=>{ foto=null; cv.setPointerCapture(e.pointerId); ant=pt(e); g.beginPath(); g.arc(ant[0],ant[1],g.lineWidth/2,0,7); g.fillStyle=g.strokeStyle; g.fill(); tem=true; };
   cv.onpointermove=e=>{ if(!ant) return; const p=pt(e); g.beginPath(); g.moveTo(ant[0],ant[1]); g.lineTo(p[0],p[1]); g.stroke(); ant=p; };
   cv.onpointerup=cv.onpointercancel=()=>{ ant=null; };
-  $("asLimpar").onclick=()=>{ g.clearRect(0,0,cv.width,cv.height); tem=false; };
+  $("asLimpar").onclick=()=>{ g.clearRect(0,0,cv.width,cv.height); tem=false; foto=null; };
   const fin=$("asFile");
   $("asArq").onclick=()=>{ fin.value=""; fin.click(); };
   fin.onchange=()=>{ const f=fin.files[0]; if(!f) return; const fr=new FileReader();
     fr.onload=()=>{ const im=new Image(); im.onload=()=>{ g.clearRect(0,0,cv.width,cv.height);
-        const r=Math.min(cv.width/im.width,cv.height/im.height); const w=im.width*r,h=im.height*r;
-        g.drawImage(im,(cv.width-w)/2,(cv.height-h)/2,w,h);
-        // fundo claro da foto vira transparente: só o traço da caneta fica
-        const d=g.getImageData(0,0,cv.width,cv.height); for(let k=0;k<d.data.length;k+=4){ const l=(d.data[k]+d.data[k+1]+d.data[k+2])/3; if(l>170) d.data[k+3]=0; }
-        g.putImageData(d,0,0); tem=true; }; im.src=fr.result; };
+        const limpa=tracoDaFoto(im); foto=limpa;
+        const r=Math.min(cv.width/limpa.width,cv.height/limpa.height); const w=limpa.width*r,h=limpa.height*r;
+        g.drawImage(limpa,(cv.width-w)/2,(cv.height-h)/2,w,h); tem=true; }; im.src=fr.result; };
     fr.readAsDataURL(f); };
   const grava=async a=>{ const l=assinaturas(); l[i]=a; cfg.assinaturas=l; delete cfg.assinatura; await salvarCfg(); };
   const rem=$("asRem");
@@ -1584,10 +1582,30 @@ function ligarAssinatura(i){
   $("asSalvar").onclick=async()=>{
     const a=Object.assign({},assinaturas()[i]);
     a.nome=$("asNome").value.trim(); a.cargo=$("asCargo").value.trim(); a.registro=$("asReg").value.trim();
-    if(tem){ const img=recortarAss(cv); if(!img){ aviso("O quadro está vazio. Assine antes de salvar."); return; } a.img=img; }
+    if(tem){ const img=recortarAss(foto||cv); if(!img){ aviso("O quadro está vazio. Assine antes de salvar."); return; } a.img=img; }
     if(!a.img&&!a.nome){ aviso("Assine no quadro ou preencha o nome."); return; }
     await grava(a); aviso("Assinatura "+(i+1)+" salva."); render(); };
 }
+function tracoDaFoto(im){ // foto da assinatura no papel → só o traço da caneta, fundo transparente
+  const esc2=Math.min(1,900/im.width), W=Math.max(1,Math.round(im.width*esc2)), H=Math.max(1,Math.round(im.height*esc2));
+  const c=document.createElement("canvas"); c.width=W; c.height=H; const g=c.getContext("2d"); g.drawImage(im,0,0,W,H);
+  const d=g.getImageData(0,0,W,H), px=d.data, lum=new Float32Array(W*H);
+  for(let i=0;i<W*H;i++) lum[i]=(px[i*4]+px[i*4+1]+px[i*4+2])/3;
+  // claridade média do papel em volta de cada ponto (acompanha sombra e iluminação desigual)
+  const I=new Float64Array((W+1)*(H+1));
+  for(let y=0;y<H;y++){ let lin=0; for(let x=0;x<W;x++){ lin+=lum[y*W+x]; I[(y+1)*(W+1)+x+1]=I[y*(W+1)+x+1]+lin; } }
+  const R=Math.max(8,Math.round(Math.min(W,H)/12)), forca=new Float32Array(W*H);
+  for(let y=0;y<H;y++) for(let x=0;x<W;x++){
+    const x0=Math.max(0,x-R),x1=Math.min(W,x+R+1),y0=Math.max(0,y-R),y1=Math.min(H,y+R+1);
+    const fundo=(I[y1*(W+1)+x1]-I[y0*(W+1)+x1]-I[y1*(W+1)+x0]+I[y0*(W+1)+x0])/((x1-x0)*(y1-y0));
+    const i=y*W+x, azul=px[i*4+2]-Math.max(px[i*4],px[i*4+1]);
+    forca[i]=fundo-lum[i]+(azul>0?azul*1.5:0); }
+  for(let y=0;y<H;y++) for(let x=0;x<W;x++){ const i=y*W+x; let a=0;
+    if(forca[i]>14){ let viz=0; // descarta pontinhos soltos (sujeira do papel)
+      for(let dy=-1;dy<=1;dy++) for(let dx=-1;dx<=1;dx++){ const xx=x+dx,yy=y+dy; if((dx||dy)&&xx>=0&&yy>=0&&xx<W&&yy<H&&forca[yy*W+xx]>14) viz++; }
+      if(viz>=3) a=Math.min(255,(forca[i]-14)*10); }
+    px[i*4]=27; px[i*4+1]=42; px[i*4+2]=107; px[i*4+3]=a; }
+  g.putImageData(d,0,0); return c; }
 function recortarAss(cv){ // corta as bordas vazias e reduz para no máximo 600 px de largura
   const g=cv.getContext("2d"), d=g.getImageData(0,0,cv.width,cv.height).data;
   let x0=cv.width,y0=cv.height,x1=-1,y1=-1;
