@@ -1823,6 +1823,7 @@ function pdfProposta(){
     <table><tr><th style="width:34px">Nº</th><th>Serviço ou fornecimento</th><th class="num" style="width:110px">Valor</th></tr>${linhas}
       <tr class="l-total"><td colspan="2" class="num">Valor total do aditivo</td><td class="num">${brl(T.preco)}</td></tr></table>
     <div class="l-concl"><b>Condições.</b> Os valores referem-se exclusivamente aos componentes não conformes constatados na inspeção e são adicionais à manutenção padrão contratada. Prazo de execução e condições de pagamento a definir.</div>
+    <div class="l-concl al"><b>Aprovação.</b> A manutenção de cada válvula está condicionada à aprovação de todos os itens deste aditivo a ela referentes. Na ausência dessa aprovação, a válvula não poderá ser submetida à manutenção, uma vez que seu desempenho e sua estanqueidade não podem ser assegurados sem a correção das não conformidades constatadas.</div>
     <div class="l-ass">${(()=>{ const a=assParaDoc("aditivo");
       return a?blocoAss(esc(a.nome||"New Válvulas"),["New Válvulas",esc(a.cargo),esc(hoje())].filter(Boolean).join(" · "),a.img)
               :blocoAss("New Válvulas",esc(hoje()),""); })()}${blocoAss("","Aprovação do cliente · data","")}</div>`,
